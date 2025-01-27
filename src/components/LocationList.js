@@ -7,11 +7,9 @@ const LocationList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false); // State to control dialog visibility
-  const [newLocation, setNewLocation] = useState({ name: '', latlong: '', password: '', login_id: '' });
+  const [newLocation, setNewLocation] = useState({ abbrevation: '',address:'', latlong: '' });
   const [visiblePasswords, setVisiblePasswords] = useState({}); // State to track visible passwords for each row
-
-  useEffect(() => {
-    const fetchLocations = async () => {
+const fetchLocations = async () => {
       try {
         const response = await fetch('https://namami-infotech.com/M&M/src/location/get_location.php');
         const data = await response.json();
@@ -27,6 +25,8 @@ const LocationList = () => {
         setLoading(false);
       }
     };
+  useEffect(() => {
+    
 
     fetchLocations();
   }, []);
@@ -48,8 +48,8 @@ const LocationList = () => {
   };
 
   const handleSubmit = async () => {
-    const { name, latlong, password, login_id } = newLocation;
-    if (!name || !latlong || !password || !login_id) {
+    const { abbrevation,address, latlong } = newLocation;
+    if (!abbrevation || !address || !latlong ) {
       setError('Please fill all fields');
       return;
     }
@@ -67,7 +67,9 @@ const LocationList = () => {
 
       if (data.success) {
         setLocations((prev) => [...prev, newLocation]); // Add the new location to the list
+
         handleCloseDialog(); // Close the dialog
+        fetchLocations();
       } else {
         setError(data.message || 'Failed to add location');
       }
@@ -76,12 +78,7 @@ const LocationList = () => {
     }
   };
 
-  const togglePasswordVisibility = (id) => {
-    setVisiblePasswords((prev) => ({
-      ...prev,
-      [id]: !prev[id], // Toggle visibility for the specific row
-    }));
-  };
+  
 
   if (loading) {
     return (
@@ -92,7 +89,7 @@ const LocationList = () => {
   }
 
   return (
-    <Box sx={{ p: 0 }}>
+    <Box sx={{ p: 1 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h4" gutterBottom>
           Location List
@@ -113,30 +110,18 @@ const LocationList = () => {
           <TableHead sx={{ backgroundColor: '#2C3E50' }}>
             <TableRow>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>ID</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Abbrevation</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Address</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Latitude/Longitude</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Login ID</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Password</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {locations.map((location) => (
               <TableRow key={location.id}>
                 <TableCell>{location.id}</TableCell>
-                <TableCell>{location.name}</TableCell>
+                <TableCell>{location.abbrevation}</TableCell>
+                <TableCell>{location.address}</TableCell>
                 <TableCell>{location.latlong}</TableCell>
-                <TableCell>{location.login_id}</TableCell>
-                <TableCell>
-                  {/* Password field with visibility toggle */}
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="body2" sx={{ mr: 1 }}>
-                      {visiblePasswords[location.id] ? location.password : '••••••••'}
-                    </Typography>
-                    <IconButton onClick={() => togglePasswordVisibility(location.id)}>
-                      {visiblePasswords[location.id] ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </Box>
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -148,12 +133,21 @@ const LocationList = () => {
         <DialogTitle>Add New Location</DialogTitle>
         <DialogContent>
           <TextField
-            label="Name"
+            label="Abbrevation"
             variant="outlined"
             fullWidth
             margin="normal"
-            name="name"
-            value={newLocation.name}
+            name="abbrevation"
+            value={newLocation.abbrevation}
+            onChange={handleChange}
+          />
+          <TextField
+            label="Address"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            name="address"
+            value={newLocation.address}
             onChange={handleChange}
           />
           <TextField
@@ -165,32 +159,8 @@ const LocationList = () => {
             value={newLocation.latlong}
             onChange={handleChange}
           />
-          <TextField
-            label="Login ID"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            name="login_id"
-            value={newLocation.login_id}
-            onChange={handleChange}
-          />
-          <TextField
-            label="Password"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            name="password"
-            type={visiblePasswords[newLocation.id] ? 'text' : 'password'} // Toggle password visibility in the form
-            value={newLocation.password}
-            onChange={handleChange}
-            InputProps={{
-              endAdornment: (
-                <IconButton onClick={() => togglePasswordVisibility(newLocation.id)}>
-                  {visiblePasswords[newLocation.id] ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              ),
-            }}
-          />
+          
+          
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="secondary">

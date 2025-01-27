@@ -20,7 +20,7 @@ import { Home, DirectionsCar, Settings, Menu as MenuIcon } from "@mui/icons-mate
 import BusinessIcon from '@mui/icons-material/Business';
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
-
+import PeopleIcon from '@mui/icons-material/People';
 const drawerWidth = 240;
 
 const Layout = ({ children }) => {
@@ -51,6 +51,14 @@ const Layout = ({ children }) => {
           <ListItemText primary="Dashboard" />
         </ListItem>
       </NavLink>
+      <NavLink to="/employee-list" style={{ textDecoration: "none", color: "inherit" }}>
+        <ListItem button>
+          <ListItemIcon sx={{ color: "inherit" }}>
+            <PeopleIcon />
+          </ListItemIcon>
+          <ListItemText primary="Employees" />
+        </ListItem>
+      </NavLink>
       <NavLink to="/office-locations" style={{ textDecoration: "none", color: "inherit" }}>
         <ListItem button>
           <ListItemIcon sx={{ color: "inherit" }}>
@@ -59,14 +67,8 @@ const Layout = ({ children }) => {
           <ListItemText primary="Office Locations" />
         </ListItem>
       </NavLink>
-      <NavLink to="/settings" style={{ textDecoration: "none", color: "inherit" }}>
-        <ListItem button>
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <Settings />
-          </ListItemIcon>
-          <ListItemText primary="Settings" />
-        </ListItem>
-      </NavLink>
+      
+      
     </List>
   );
 
@@ -140,7 +142,7 @@ const Layout = ({ children }) => {
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
             boxSizing: "border-box",
-            background: "#34495E",
+            background: "#2C3E50",
             color: "#ECF0F1",
           },
         }}
@@ -163,7 +165,7 @@ const Layout = ({ children }) => {
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
             boxSizing: "border-box",
-            background: "#34495E",
+            background: "#2C3E50",
             color: "#ECF0F1",
             marginTop: "64px", // Prevent drawer from covering navbar
           },
