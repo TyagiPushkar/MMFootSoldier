@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Box, TextField, Button, Typography, Container } from "@mui/material";
+import "./Login.css"; // Import CSS file
 
 const Login = ({ setIsAuthenticated }) => {
   const [credentials, setCredentials] = useState({ login_id: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    setLoading(true);
+    setError("");
+
     try {
       const response = await axios.post(
-        "https://namami-infotech.com/M&M/src/auth/login_web.php", // Your login API endpoint
+        "https://namami-infotech.com/M&M/src/auth/login_web.php",
         credentials,
         {
           headers: { "Content-Type": "application/json" },
@@ -21,69 +25,63 @@ const Login = ({ setIsAuthenticated }) => {
       const { success, message, user } = response.data;
 
       if (success) {
-        // Save user data to localStorage
         localStorage.setItem("user", JSON.stringify(user));
-
-        // Update authentication state
         setIsAuthenticated(true);
-
-        // Redirect to dashboard or any other page
         navigate("/");
       } else {
-        // Show error message if login fails
         setError(message || "Invalid login credentials");
       }
     } catch (err) {
-      // Handle API or network errors
       setError("Something went wrong. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-        }}
-      >
-        <Typography variant="h4" sx={{ mb: 3 }}>
-          Login
-        </Typography>
-        <TextField
-          label="Login ID"
-          variant="outlined"
-          fullWidth
-          sx={{ mb: 2 }}
-          value={credentials.login_id}
-          onChange={(e) =>
-            setCredentials({ ...credentials, login_id: e.target.value })
-          }
-        />
-        <TextField
-          label="Password"
-          type="password"
-          variant="outlined"
-          fullWidth
-          sx={{ mb: 2 }}
-          value={credentials.password}
-          onChange={(e) =>
-            setCredentials({ ...credentials, password: e.target.value })
-          }
-        />
-        {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
-            {error}
-          </Typography>
-        )}
-        <Button variant="contained" fullWidth onClick={handleLogin}>
-          Login
-        </Button>
-      </Box>
-    </Container>
+    <div className="login-container">
+      <div className="login-box">
+        <div className="login-header">
+          <img
+            className="login-logo"
+            src="https://namami-infotech.com/M&M/icons/logo.png"
+            alt="Company Logo"
+          />
+          <h2>INVENTORY MANAGEMENT SYSTEM</h2>
+          <p className="login-subtitle">LOGIN YOUR ACCOUNT</p>
+        </div>
+
+        <div className="login-form">
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Login ID"
+              className="login-input"
+              value={credentials.login_id}
+              onChange={(e) => setCredentials({ ...credentials, login_id: e.target.value })}
+            />
+          </div>
+
+          <div className="input-group">
+            <input
+              type="password"
+              placeholder="Password"
+              className="login-input"
+              value={credentials.password}
+              onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+            />
+          </div>
+
+          {error && <p className="error-message">{error}</p>}
+
+          <button className="login-button" onClick={handleLogin} disabled={loading}>
+            {loading ? "Signing in..." : "Sign in"}
+          </button>
+
+          <p className="forgot-password">Forgot your password?</p>
+        </div>
+      </div>
+    </div>
   );
 };
 
