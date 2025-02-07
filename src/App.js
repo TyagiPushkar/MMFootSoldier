@@ -8,6 +8,7 @@ import NotFound from "./components/NotFound";
 import Dashboard from "./components/Dashboard"; // Import the Dashboard component
 import LocationList from "./components/LocationList";
 import EmployeeList from "./components/EmployeeList"
+import DeliveryList from "./components/Delivery";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     !!localStorage.getItem("user") // Check if user data exists in localStorage
@@ -37,7 +38,8 @@ function App() {
                   <Route path="/" element={<Dashboard />} /> {/* Add the Dashboard route */}
                   {/* You can add more nested routes here */}
                   <Route path="/office-locations" element={<LocationList />} />
-                   <Route path="/employee-list" element={<EmployeeList />} />
+                  <Route path="/employee-list" element={<EmployeeList />} />
+                  <Route path="/out-delivery" element={<DeliveryList/>} />
                 </Routes>
               </Layout>
             </PrivateRoute>

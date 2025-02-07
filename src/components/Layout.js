@@ -11,17 +11,16 @@ import {
   ListItemText,
   Box,
   Avatar,
-  Button,
   Menu,
   MenuItem,
   IconButton,
 } from "@mui/material";
-import { Home, DirectionsCar, Settings, Menu as MenuIcon } from "@mui/icons-material";
+import { Home, Menu as MenuIcon } from "@mui/icons-material";
 import BusinessIcon from '@mui/icons-material/Business';
 import { NavLink, useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
 import PeopleIcon from '@mui/icons-material/People';
-const drawerWidth = 240;
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+const drawerWidth = 200;
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
@@ -42,35 +41,35 @@ const Layout = ({ children }) => {
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
   const drawerContent = (
-    <List>
-      <NavLink to="/" style={{ textDecoration: "none", color: "inherit" }}>
-        <ListItem button>
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <Home />
-          </ListItemIcon>
-          <ListItemText primary="Dashboard" />
+  <List>
+    {[
+      { to: "/", icon: <Home />, text: "Dashboard" },
+        { to: "/employee-list", icon: <PeopleIcon />, text: "Employees" },
+       { to: "/office-locations", icon: <BusinessIcon />, text: "Offices Location" },
+      { to: "/out-delivery", icon: <LocalShippingIcon />, text: "Out For Delivery" }
+    ].map(({ to, icon, text }) => (
+      <NavLink
+        key={to}
+        to={to}
+        style={({ isActive }) => ({
+          textDecoration: "none",
+          color: isActive ? "white" : "inherit",
+          backgroundColor: isActive ? "teal" : "transparent",
+          borderRadius: "5px",
+          display: "block",
+        })}
+      >
+        <ListItem button sx={{ borderRadius: "5px", padding: "10px 16px" }}>
+          <ListItemIcon sx={{ color: "inherit" }}>{icon}</ListItemIcon>
+          <ListItemText primary={text} />
         </ListItem>
       </NavLink>
-      <NavLink to="/employee-list" style={{ textDecoration: "none", color: "inherit" }}>
-        <ListItem button>
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <PeopleIcon />
-          </ListItemIcon>
-          <ListItemText primary="Employees" />
-        </ListItem>
-      </NavLink>
-      <NavLink to="/office-locations" style={{ textDecoration: "none", color: "inherit" }}>
-        <ListItem button>
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <BusinessIcon />
-          </ListItemIcon>
-          <ListItemText primary="Office Locations" />
-        </ListItem>
-      </NavLink>
-      
-      
-    </List>
-  );
+    ))}
+  </List>
+);
+
+   
+
 
   return (
     <Box sx={{ display: "flex", overflowX: "hidden" }}>
@@ -81,7 +80,7 @@ const Layout = ({ children }) => {
         position="fixed"
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1, // Ensures navbar stays on top
-          background: "#2C3E50",
+          background: "teal",
           height: 64,
         }}
       >
@@ -101,24 +100,25 @@ const Layout = ({ children }) => {
                   <div style={{display:"flex", gap:"10px", alignItems:"center"}}>
           <Box
             component="img"
-            src={logo}
+            src="https://namami-infotech.com/M&M/icons/logo.png"
             alt="Logo"
             sx={{
               height: 40,
               width: "auto",
               cursor: "pointer",
             }}
-                  />
-                      <Typography>M & M Vehicle Management</Typography>
+            />
+            <span>M&M Vehicle Management</span>
+                      
                       </div>
 
           {/* Profile and Logout */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="body1" sx={{ mr: 2, display: { xs: "none", sm: "block" } }}>
-              {user.username}
+              {user.full_name}
             </Typography>
             <IconButton onClick={handleProfileMenuOpen}>
-              <Avatar alt={user.username} src={user.image || "/default-avatar.png"} />
+              <Avatar alt={user.username} src={user.full_name || user.full_name } />
             </IconButton>
             <Menu
               anchorEl={anchorEl}
@@ -142,8 +142,8 @@ const Layout = ({ children }) => {
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
             boxSizing: "border-box",
-            background: "#2C3E50",
-            color: "#ECF0F1",
+            background: "white",
+            color: "black",
           },
         }}
         open
@@ -165,7 +165,7 @@ const Layout = ({ children }) => {
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
             boxSizing: "border-box",
-            background: "#2C3E50",
+            background: "teal",
             color: "#ECF0F1",
             marginTop: "64px", // Prevent drawer from covering navbar
           },
@@ -179,9 +179,10 @@ const Layout = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 1,
+          p: 0,
           mt: 0, // Added margin-top for the main content to avoid overlapping with the AppBar
           overflowX: "hidden",
+          background:"#F3F4F6"
         }}
       >
         <Toolbar /> {/* Spacing for the navbar */}

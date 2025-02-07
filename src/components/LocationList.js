@@ -94,7 +94,7 @@ const fetchLocations = async () => {
         <Typography variant="h4" gutterBottom>
           Location List
         </Typography>
-        <Button variant="contained" sx={{ backgroundColor: '#2C3E50' }} onClick={handleAddLocationClick}>
+        <Button variant="contained" sx={{ backgroundColor: 'teal' }} onClick={handleAddLocationClick}>
           Add Location
         </Button>
       </Box>
@@ -107,7 +107,7 @@ const fetchLocations = async () => {
 
       <TableContainer component={Paper}>
         <Table>
-          <TableHead sx={{ backgroundColor: '#2C3E50' }}>
+          <TableHead sx={{ backgroundColor: 'teal' }}>
             <TableRow>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>ID</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Abbrevation</TableCell>
