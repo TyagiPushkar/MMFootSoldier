@@ -88,9 +88,10 @@ useEffect(() => {
 
   return (
     <Box sx={{ p: 3 }}>
+       <Box display="flex" sx={{justifyContent:"space-between"}} mb={3}>
       <Typography variant="h4" gutterBottom align="center">Delivery List</Typography>
       {error && <Typography color="error" align="center">{error}</Typography>}
-       <Box display="flex" gap={2} mb={3}>
+      
         <TextField
           type="date"
           label="Filter by Date"
@@ -98,7 +99,7 @@ useEffect(() => {
           value={filterDate}
           onChange={handleFilterChange}
         />
-        <Button variant="contained" color="primary" onClick={exportToCSV}>
+        <Button variant="contained" sx={{backgroundColor:"teal"}} onClick={exportToCSV}>
           Export to CSV
         </Button>
       </Box>
@@ -122,19 +123,13 @@ useEffect(() => {
                   {delivery.TypeOfDelivery}
                 </Typography>
                 
+
+                <Box display="flex" sx={{justifyContent:"space-between"}}>
+
                 <Box display="flex" alignItems="center" gap={1} mt={1}>
                   <LocalShippingIcon color="primary" />
                   <Typography variant="body2">Vehicles: {delivery.NumberOfVehicle}</Typography>
                 </Box>
-                
-                <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                  {[delivery.VehicleNo1, delivery.VehicleNo2, delivery.VehicleNo3, delivery.VehicleNo4, delivery.VehicleNo5]
-                    .filter(Boolean)
-                    .map((vehicle, index) => (
-                      <Chip key={index} label={vehicle} variant="outlined" />
-                    ))}
-                </Box>
-                
                 <Box mt={2} display="flex" gap={1}>
                   {[delivery.VehiclePic1, delivery.VehiclePic2, delivery.VehiclePic3, delivery.VehiclePic4, delivery.VehiclePic5]
                     .filter(Boolean)
@@ -144,14 +139,27 @@ useEffect(() => {
                       </IconButton>
                     ))}
                 </Box>
+                </Box>
+                <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
+                  {[delivery.VehicleNo1, delivery.VehicleNo2, delivery.VehicleNo3, delivery.VehicleNo4, delivery.VehicleNo5]
+                    .filter(Boolean)
+                    .map((vehicle, index) => (
+                      <Chip key={index} label={vehicle} variant="outlined" />
+                    ))}
+                </Box>
                 
-                <Typography variant="body2" mt={2}>
+                
+                <Box display="flex" sx={{ justifyContent: "space-between" }} mt={1}>
+                  
+                  <Typography variant="body2" >
                   Location: {locations[Number(delivery.LocationId)] || `Unknown (ID: ${delivery.LocationId})`}
                 </Typography>
                 
-                <Typography variant="body2" color="text.secondary" mt={1}>
+                <Typography variant="body2" color="text.secondary" >
                   Date: {delivery.Datetime}
                 </Typography>
+                </Box>
+                
               </CardContent>
             </Card>
           </Grid>
