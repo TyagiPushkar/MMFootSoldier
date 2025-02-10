@@ -14,7 +14,9 @@ import {
   Button
 } from '@mui/material';
 import ImageIcon from '@mui/icons-material/Image';
+import Autocomplete from '@mui/material/Autocomplete';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { saveAs } from 'file-saver';
 import dayjs from 'dayjs';
 const DeliveryList = () => {
@@ -25,7 +27,9 @@ const DeliveryList = () => {
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState('');
- const [filterDate, setFilterDate] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [empNames, setEmpNames] = useState([]);
+  const [selectedEmp, setSelectedEmp] = useState(null);
   const role = JSON.parse(localStorage.getItem('user'))?.role || 'user';
   const locationId = JSON.parse(localStorage.getItem('user'))?.location_id || '';
 useEffect(() => {
@@ -37,7 +41,7 @@ useEffect(() => {
       const locationData = await locationRes.json();
       if (locationData.success) {
         const locationMap = {};
-        locationData.data.forEach(loc => {
+        locationData.data.forEach((loc) => {
           locationMap[loc.id] = loc.abbrevation;
         });
         setLocations(locationMap);
@@ -48,6 +52,7 @@ useEffect(() => {
       if (deliveryData.status === 'success') {
         setDeliveries(deliveryData.data);
         setFilteredDeliveries(deliveryData.data);
+        extractDistinctEmpNames(deliveryData.data);
       } else {
         setError(deliveryData.message || 'Failed to fetch deliveries');
       }
@@ -58,17 +63,33 @@ useEffect(() => {
     }
   };
 
-  const handleImageClick = (imageUrl) => {
-    setSelectedImage(imageUrl);
-    setOpenDialog(true);
+  // Extract distinct employee names from deliveries
+  const extractDistinctEmpNames = (data) => {
+    const uniqueNames = [...new Set(data.map((d) => d.EmpName))];
+    setEmpNames(uniqueNames);
   };
 
-   const handleFilterChange = (event) => {
-    setFilterDate(event.target.value);
-    if (event.target.value) {
-      setFilteredDeliveries(
-        deliveries.filter(d => d.Datetime.startsWith(event.target.value))
-      );
+  // Filter deliveries based on selected date
+  const handleFilterChange = (event) => {
+    const selectedDate = event.target.value;
+    setFilterDate(selectedDate);
+
+    let filtered = deliveries;
+
+    if (selectedDate) {
+      filtered = deliveries.filter((d) => d.Datetime.startsWith(selectedDate));
+    }
+
+    setFilteredDeliveries(filtered);
+    extractDistinctEmpNames(filtered); // Update the distinct names based on filtered deliveries
+  };
+
+  // Filter deliveries based on selected employee name
+  const handleEmpFilterChange = (event, newValue) => {
+    setSelectedEmp(newValue);
+
+    if (newValue) {
+      setFilteredDeliveries(deliveries.filter((d) => d.EmpName === newValue));
     } else {
       setFilteredDeliveries(deliveries);
     }
@@ -76,12 +97,21 @@ useEffect(() => {
 
   const exportToCSV = () => {
     let csvContent = 'Emp Name,Type of Delivery,Number of Vehicles,Vehicle Numbers,Location,Datetime\n';
-    filteredDeliveries.forEach(d => {
+    filteredDeliveries.forEach((d) => {
       csvContent += `${d.EmpName},${d.TypeOfDelivery},${d.NumberOfVehicle},${[d.VehicleNo1, d.VehicleNo2, d.VehicleNo3, d.VehicleNo4, d.VehicleNo5].filter(Boolean).join(' ')},${locations[d.LocationId] || 'Unknown'},${d.Datetime}\n`;
     });
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     saveAs(blob, 'deliveries.csv');
   };
+
+  
+
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setOpenDialog(true);
+  };
+
+   
   if (loading) {
     return <Typography variant="h6" align="center">Loading...</Typography>;
   }
@@ -91,7 +121,16 @@ useEffect(() => {
        <Box display="flex" sx={{justifyContent:"space-between"}} mb={3}>
       <Typography variant="h4" gutterBottom align="center">Delivery List</Typography>
       {error && <Typography color="error" align="center">{error}</Typography>}
-      
+       <Autocomplete
+          value={selectedEmp}
+          onChange={handleEmpFilterChange}
+          options={empNames}
+          renderInput={(params) => <TextField {...params} label="Search" fullWidth />}
+          getOptionLabel={(option) => option}
+          freeSolo
+          disableClearable
+          sx={{width:"200px"}}
+        />
         <TextField
           type="date"
           label="Filter by Date"
@@ -108,7 +147,9 @@ useEffect(() => {
           <Grid item xs={12} sm={6} md={4} key={delivery.ID}>
             <Card sx={{ borderRadius: 3, boxShadow: 3, p: 2, backgroundColor: '#f9f9f9', cursor: 'pointer' }}>
               <CardContent>
-                <Box display="flex" alignItems="center" gap={2}>
+               
+                <Box display="flex" alignItems="center" justifyContent={'space-between'} >
+                   <div style={{display:"flex",alignItems:"center", gap:"5px"}}>
                   <CardMedia
                     component="img"
                     image={delivery.EmpPic}
@@ -116,11 +157,22 @@ useEffect(() => {
                     sx={{ width: 50, height: 50, borderRadius: '50%' }}
                     onClick={() => handleImageClick(delivery.EmpPic)}
                   />
-                  <Typography variant="h6">{delivery.EmpName}</Typography>
+                    <Typography variant="h6">{delivery.EmpName}</Typography>
+                    </div>
+                  <CardMedia
+                    component="img"
+                    image={delivery.CombinedVehiclePic}
+                    alt="Employee"
+                    sx={{ width: 50, height: 50, borderRadius: '50%' }}
+                    onClick={() => handleImageClick(delivery.CombinedVehiclePic)}
+                  />
                 </Box>
                 
                 <Typography variant="body2" color="text.secondary" mt={1}>
-                  {delivery.TypeOfDelivery}
+                   <Typography variant="body2">Delivery Type: {delivery.TypeOfDelivery}</Typography>
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mt={1}>
+                   <Typography variant="body2">Vehicle Type: {delivery.TypeOfVehicle}</Typography>
                 </Typography>
                 
 
@@ -150,11 +202,20 @@ useEffect(() => {
                 
                 
                 <Box display="flex" sx={{ justifyContent: "space-between" }} mt={1}>
-                  
-                  <Typography variant="body2" >
-                  Location: {locations[Number(delivery.LocationId)] || `Unknown (ID: ${delivery.LocationId})`}
-                </Typography>
-                
+                  <Box display="flex" alignItems="center" gap={1} >
+                    <LocationOnIcon color="primary"/>
+                <Typography variant="body2">
+  <a
+    href={`https://www.google.com/maps?q=${delivery.LatLong}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ textDecoration: 'none', color: 'blue' }}
+  >
+    {locations[Number(delivery.LocationId)] || `Unknown (ID: ${delivery.LocationId})`}
+  </a>
+</Typography>
+
+                </Box>
                 <Typography variant="body2" color="text.secondary" >
                   Date: {delivery.Datetime}
                 </Typography>

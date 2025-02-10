@@ -43,7 +43,6 @@ const Layout = ({ children }) => {
   const drawerContent = (
   <List>
     {[
-      { to: "/", icon: <Home />, text: "Dashboard" },
         { to: "/employee-list", icon: <PeopleIcon />, text: "Employees" },
        { to: "/office-locations", icon: <BusinessIcon />, text: "Offices Location" },
       { to: "/out-delivery", icon: <LocalShippingIcon />, text: "Out For Delivery" }
@@ -53,8 +52,8 @@ const Layout = ({ children }) => {
         to={to}
         style={({ isActive }) => ({
           textDecoration: "none",
-          color: isActive ? "white" : "inherit",
-          backgroundColor: isActive ? "teal" : "transparent",
+          color: isActive ? "teal" : "inherit",
+          backgroundColor: isActive ? "white" : "transparent",
           borderRadius: "5px",
           display: "block",
         })}
@@ -142,8 +141,8 @@ const Layout = ({ children }) => {
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
             boxSizing: "border-box",
-            background: "white",
-            color: "black",
+            background: "teal",
+            color: "white",
           },
         }}
         open

@@ -27,7 +27,7 @@ const Login = ({ setIsAuthenticated }) => {
       if (success) {
         localStorage.setItem("user", JSON.stringify(user));
         setIsAuthenticated(true);
-        navigate("/");
+        navigate("/out-delivery");
       } else {
         setError(message || "Invalid login credentials");
       }
@@ -47,7 +47,7 @@ const Login = ({ setIsAuthenticated }) => {
             src="https://namami-infotech.com/M&M/icons/logo.png"
             alt="Company Logo"
           />
-          <h2>INVENTORY MANAGEMENT SYSTEM</h2>
+          <h2>VEHICLE MANAGEMENT SYSTEM</h2>
           <p className="login-subtitle">LOGIN YOUR ACCOUNT</p>
         </div>
 
@@ -78,7 +78,7 @@ const Login = ({ setIsAuthenticated }) => {
             {loading ? "Signing in..." : "Sign in"}
           </button>
 
-          <p className="forgot-password">Forgot your password?</p>
+          {/* <p className="forgot-password">Forgot your password?</p> */}
         </div>
       </div>
     </div>

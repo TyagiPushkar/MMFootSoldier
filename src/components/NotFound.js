@@ -21,7 +21,7 @@ const NotFound = () => {
       <Typography variant="h5" sx={{ mb: 3 }}>
         Page Not Found
       </Typography>
-      <Button variant="contained" onClick={() => navigate("/")}>
+      <Button variant="contained" onClick={() => navigate("/out-delivery")}>
         Go to Dashboard
       </Button>
     </Box>

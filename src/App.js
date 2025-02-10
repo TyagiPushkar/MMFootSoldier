@@ -35,8 +35,6 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <Routes>
-                  <Route path="/" element={<Dashboard />} /> {/* Add the Dashboard route */}
-                  {/* You can add more nested routes here */}
                   <Route path="/office-locations" element={<LocationList />} />
                   <Route path="/employee-list" element={<EmployeeList />} />
                   <Route path="/out-delivery" element={<DeliveryList/>} />
