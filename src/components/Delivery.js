@@ -30,38 +30,47 @@ const DeliveryList = () => {
   const [filterDate, setFilterDate] = useState('');
   const [empNames, setEmpNames] = useState([]);
   const [selectedEmp, setSelectedEmp] = useState(null);
-  const role = JSON.parse(localStorage.getItem('user'))?.role || 'user';
-  const locationId = JSON.parse(localStorage.getItem('user'))?.location_id || '';
+ 
 useEffect(() => {
     fetchData();
   }, []);
   const fetchData = async () => {
-    try {
-      const locationRes = await fetch('https://namami-infotech.com/M&M/src/location/get_location.php');
-      const locationData = await locationRes.json();
-      if (locationData.success) {
-        const locationMap = {};
-        locationData.data.forEach((loc) => {
-          locationMap[loc.id] = loc.abbrevation;
-        });
-        setLocations(locationMap);
-      }
-
-      const deliveryRes = await fetch('https://namami-infotech.com/M&M/src/delivery/delivery_get.php?role=admin');
-      const deliveryData = await deliveryRes.json();
-      if (deliveryData.status === 'success') {
-        setDeliveries(deliveryData.data);
-        setFilteredDeliveries(deliveryData.data);
-        extractDistinctEmpNames(deliveryData.data);
-      } else {
-        setError(deliveryData.message || 'Failed to fetch deliveries');
-      }
-    } catch (err) {
-      setError('Error fetching data');
-    } finally {
-      setLoading(false);
+  try {
+    const locationRes = await fetch('https://namami-infotech.com/M&M/src/location/get_location.php');
+    const locationData = await locationRes.json();
+    if (locationData.success) {
+      const locationMap = {};
+      locationData.data.forEach((loc) => {
+        locationMap[loc.id] = loc.abbrevation;
+      });
+      setLocations(locationMap);
     }
-  };
+
+    // Get user role and location ID
+    const user = JSON.parse(localStorage.getItem('user'));
+   const role = user?.role?.trim() === 'admin' ? 'admin' : '';
+const locationId = user?.location_id || '';
+const deliveryUrl = role
+  ? 'https://namami-infotech.com/M&M/src/delivery/delivery_get.php?role=admin'
+  : `https://namami-infotech.com/M&M/src/delivery/delivery_get.php?LocationId=${locationId}`;
+
+    const deliveryRes = await fetch(deliveryUrl);
+    const deliveryData = await deliveryRes.json();
+
+    if (deliveryData.status === 'success') {
+      setDeliveries(deliveryData.data);
+      setFilteredDeliveries(deliveryData.data);
+      extractDistinctEmpNames(deliveryData.data);
+    } else {
+      setError(deliveryData.message || 'Failed to fetch deliveries');
+    }
+  } catch (err) {
+    setError('Error fetching data');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Extract distinct employee names from deliveries
   const extractDistinctEmpNames = (data) => {

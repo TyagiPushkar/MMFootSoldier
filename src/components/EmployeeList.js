@@ -22,6 +22,7 @@ import {
   InputLabel,
   Grid,
   IconButton,
+  Autocomplete,
 } from "@mui/material";
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 const EmployeeList = () => {
@@ -30,6 +31,7 @@ const EmployeeList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [newEmployee, setNewEmployee] = useState({
     full_name: "",
     email: "",
@@ -39,6 +41,13 @@ const EmployeeList = () => {
     login_id: "",
     location_id: [], // Change to an array to store multiple location IDs
   });
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredEmployees = employees.filter((emp) =>
+    emp.Full_Name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const fetchEmployees = async () => {
     try {
@@ -185,6 +194,13 @@ const EmployeeList = () => {
     <Box sx={{ p: 2 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Typography variant="h4">Employee List</Typography>
+         <TextField
+          label="Search Employee"
+          variant="outlined"
+          size="small"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
         <Button
           variant="contained"
           sx={{ backgroundColor: "teal" }}
@@ -210,7 +226,7 @@ const EmployeeList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-  {employees.map((employee) => (
+  {filteredEmployees.map((employee) => (
     <TableRow key={employee.Employee_Id}>
       <TableCell>{employee.Login_Id}</TableCell>
       <TableCell>{employee.Full_Name}</TableCell>
@@ -307,22 +323,16 @@ const EmployeeList = () => {
 </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth margin="normal" required>
-                <InputLabel>Location</InputLabel>
-                <Select
-                  multiple
-                  name="location_id"
-                  value={newEmployee.location_id}
-                  onChange={handleChange}
-                  
-                >
-                  {locations.map((location) => (
-                    <MenuItem key={location.id} value={location.id}>
-                      {location.abbrevation}({location.address})
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Autocomplete
+            multiple
+            options={locations}
+            getOptionLabel={(option) => option.abbrevation}
+            onChange={(event, value) =>
+              setNewEmployee({ ...newEmployee, location_id: value.map((v) => v.id) })
+            }
+                renderInput={(params) => <TextField {...params} label="Location" margin="normal" />}
+                fullWidth
+          />
             </Grid>
             <Grid item xs={6}>
               <TextField

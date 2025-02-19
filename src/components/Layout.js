@@ -40,16 +40,34 @@ const Layout = ({ children }) => {
   };
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
-  const drawerContent = (
+ const drawerContent = (
   <List>
-    {[
+    {user.role === "admin" ? (
+      [
         { to: "/employee-list", icon: <PeopleIcon />, text: "Employees" },
-       { to: "/office-locations", icon: <BusinessIcon />, text: "Offices Location" },
-      { to: "/out-delivery", icon: <LocalShippingIcon />, text: "Out For Delivery" }
-    ].map(({ to, icon, text }) => (
+        { to: "/office-locations", icon: <BusinessIcon />, text: "Offices Location" },
+        { to: "/out-delivery", icon: <LocalShippingIcon />, text: "Out For Delivery" },
+      ].map(({ to, icon, text }) => (
+        <NavLink
+          key={to}
+          to={to}
+          style={({ isActive }) => ({
+            textDecoration: "none",
+            color: isActive ? "teal" : "inherit",
+            backgroundColor: isActive ? "white" : "transparent",
+            borderRadius: "5px",
+            display: "block",
+          })}
+        >
+          <ListItem button sx={{ borderRadius: "5px", padding: "10px 16px" }}>
+            <ListItemIcon sx={{ color: "inherit" }}>{icon}</ListItemIcon>
+            <ListItemText primary={text} />
+          </ListItem>
+        </NavLink>
+      ))
+    ) : (
       <NavLink
-        key={to}
-        to={to}
+        to="/out-delivery"
         style={({ isActive }) => ({
           textDecoration: "none",
           color: isActive ? "teal" : "inherit",
@@ -59,15 +77,15 @@ const Layout = ({ children }) => {
         })}
       >
         <ListItem button sx={{ borderRadius: "5px", padding: "10px 16px" }}>
-          <ListItemIcon sx={{ color: "inherit" }}>{icon}</ListItemIcon>
-          <ListItemText primary={text} />
+          <ListItemIcon sx={{ color: "inherit" }}>
+            <LocalShippingIcon />
+          </ListItemIcon>
+          <ListItemText primary="Out For Delivery" />
         </ListItem>
       </NavLink>
-    ))}
+    )}
   </List>
 );
-
-   
 
 
   return (
