@@ -105,13 +105,30 @@ const deliveryUrl = role
   };
 
   const exportToCSV = () => {
-    let csvContent = 'Emp Name,Type of Delivery,Number of Vehicles,Vehicle Numbers,Location,Datetime\n';
+    let csvContent = 'EmpId,Emp Name,Type of Delivery,Number of Vehicles,Vehicle Numbers,Location,Datetime\n';
+    
     filteredDeliveries.forEach((d) => {
-      csvContent += `${d.EmpName},${d.TypeOfDelivery},${d.NumberOfVehicle},${[d.VehicleNo1, d.VehicleNo2, d.VehicleNo3, d.VehicleNo4, d.VehicleNo5].filter(Boolean).join(' ')},${locations[d.LocationId] || 'Unknown'},${d.Datetime}\n`;
+        let vehicleNumbers = [d.VehicleNo1, d.VehicleNo2, d.VehicleNo3, d.VehicleNo4, d.VehicleNo5]
+            .filter(Boolean)
+            .join(','); // Ensure vehicle numbers are separated correctly
+
+        // Wrap fields containing commas in double quotes
+        let row = [
+            d.EmpId,
+            `"${d.EmpName}"`,
+            `"${d.TypeOfDelivery}"`,
+            d.NumberOfVehicle,
+            `"${vehicleNumbers}"`,
+            `"${locations[d.LocationId] || 'Unknown'}"`,
+            `"${d.Datetime}"`
+        ].join(',');
+
+        csvContent += row + '\n';
     });
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     saveAs(blob, 'deliveries.csv');
-  };
+};
 
   
 
