@@ -317,8 +317,8 @@ const EmployeeList = () => {
     value={newEmployee.role}
     onChange={handleChange}
   >
-    <MenuItem value="1 Manager">Manager</MenuItem>
-    <MenuItem value="2 Supervisor">Supervisor</MenuItem>
+    <MenuItem value="Manager">Manager</MenuItem>
+    <MenuItem value="Supervisor">Supervisor</MenuItem>
   </Select>
 </FormControl>
             </Grid>
