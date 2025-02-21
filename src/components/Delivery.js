@@ -11,7 +11,8 @@ import {
   DialogContent,
   Chip,
   TextField,
-  Button
+  Button,
+  Pagination
 } from '@mui/material';
 import ImageIcon from '@mui/icons-material/Image';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -19,6 +20,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { saveAs } from 'file-saver';
 import dayjs from 'dayjs';
+import GetAppIcon from '@mui/icons-material/GetApp';
 const DeliveryList = () => {
   const [deliveries, setDeliveries] = useState([]);
   const [filteredDeliveries, setFilteredDeliveries] = useState([]);
@@ -27,9 +29,12 @@ const DeliveryList = () => {
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState('');
-  const [filterDate, setFilterDate] = useState('');
+ const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [empNames, setEmpNames] = useState([]);
   const [selectedEmp, setSelectedEmp] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
  
 useEffect(() => {
     fetchData();
@@ -78,20 +83,27 @@ const deliveryUrl = role
     setEmpNames(uniqueNames);
   };
 
-  // Filter deliveries based on selected date
-  const handleFilterChange = (event) => {
-    const selectedDate = event.target.value;
-    setFilterDate(selectedDate);
-
+  const filterDeliveries = () => {
     let filtered = deliveries;
 
-    if (selectedDate) {
-      filtered = deliveries.filter((d) => d.Datetime.startsWith(selectedDate));
+    if (fromDate && toDate) {
+      filtered = filtered.filter((d) => {
+        const deliveryDate = dayjs(d.Datetime.split(' ')[0]);
+        return deliveryDate.isAfter(dayjs(fromDate).subtract(1, 'day')) && deliveryDate.isBefore(dayjs(toDate).add(1, 'day'));
+      });
+    }
+
+    if (selectedEmp) {
+      filtered = filtered.filter((d) => d.EmpName === selectedEmp);
     }
 
     setFilteredDeliveries(filtered);
-    extractDistinctEmpNames(filtered); // Update the distinct names based on filtered deliveries
+    setCurrentPage(1);
   };
+
+  useEffect(() => {
+    filterDeliveries();
+  }, [fromDate, toDate, selectedEmp]);
 
   // Filter deliveries based on selected employee name
   const handleEmpFilterChange = (event, newValue) => {
@@ -137,6 +149,13 @@ const deliveryUrl = role
     setOpenDialog(true);
   };
 
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredDeliveries.slice(indexOfFirstItem, indexOfLastItem);
    
   if (loading) {
     return <Typography variant="h6" align="center">Loading...</Typography>;
@@ -157,19 +176,15 @@ const deliveryUrl = role
           disableClearable
           sx={{width:"200px"}}
         />
-        <TextField
-          type="date"
-          label="Filter by Date"
-          InputLabelProps={{ shrink: true }}
-          value={filterDate}
-          onChange={handleFilterChange}
-        />
-        <Button variant="contained" sx={{backgroundColor:"teal"}} onClick={exportToCSV}>
-          Export to CSV
+        
+       <TextField type="date" label="From Date" InputLabelProps={{ shrink: true }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        <TextField type="date" label="To Date" InputLabelProps={{ shrink: true }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
+       <Button variant="contained" sx={{backgroundColor:"teal"}} onClick={exportToCSV}>
+         <GetAppIcon/>  CSV
         </Button>
       </Box>
       <Grid container spacing={3}>
-        {filteredDeliveries.map((delivery) => (
+        {currentItems.map((delivery) => (
           <Grid item xs={12} sm={6} md={4} key={delivery.ID}>
             <Card sx={{ borderRadius: 3, boxShadow: 3, p: 2, backgroundColor: '#f9f9f9', cursor: 'pointer' }}>
               <CardContent>
@@ -182,8 +197,11 @@ const deliveryUrl = role
                     alt="Employee"
                     sx={{ width: 50, height: 50, borderRadius: '50%' }}
                     onClick={() => handleImageClick(delivery.EmpPic)}
-                  />
+                    />
+                    <div style={{display:"flex",flexDirection:"column"}}>
                     <Typography variant="h6">{delivery.EmpName}</Typography>
+                    <Typography variant="p">{delivery.EmpId}</Typography>
+                    </div>
                     </div>
                   <CardMedia
                     component="img"
@@ -253,6 +271,14 @@ const deliveryUrl = role
         ))}
       </Grid>
       
+      <Box display="flex" justifyContent="center" mt={3}>
+        <Pagination
+          count={Math.ceil(filteredDeliveries.length / itemsPerPage)}
+          page={currentPage}
+          onChange={handlePageChange}
+          color="primary"
+        />
+      </Box>
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogContent>
           <img src={selectedImage} alt="Preview" style={{ width: '400px' }} />
