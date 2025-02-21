@@ -33,6 +33,7 @@ const DeliveryList = () => {
   const [toDate, setToDate] = useState('');
   const [empNames, setEmpNames] = useState([]);
   const [selectedEmp, setSelectedEmp] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
  
@@ -84,26 +85,40 @@ const deliveryUrl = role
   };
 
   const filterDeliveries = () => {
-    let filtered = deliveries;
+  let filtered = [...deliveries];
 
-    if (fromDate && toDate) {
-      filtered = filtered.filter((d) => {
-        const deliveryDate = dayjs(d.Datetime.split(' ')[0]);
-        return deliveryDate.isAfter(dayjs(fromDate).subtract(1, 'day')) && deliveryDate.isBefore(dayjs(toDate).add(1, 'day'));
-      });
-    }
+  if (fromDate && toDate) {
+    filtered = filtered.filter((d) => {
+      const deliveryDate = dayjs(d.Datetime.split(' ')[0]);
+      return (
+        deliveryDate.isAfter(dayjs(fromDate).subtract(1, 'day')) &&
+        deliveryDate.isBefore(dayjs(toDate).add(1, 'day'))
+      );
+    });
+  }
 
-    if (selectedEmp) {
-      filtered = filtered.filter((d) => d.EmpName === selectedEmp);
-    }
+  if (selectedLocation) {
+    filtered = filtered.filter((d) => Number(d.LocationId) === selectedLocation);
+  }
 
-    setFilteredDeliveries(filtered);
-    setCurrentPage(1);
-  };
+  if (selectedEmp) {
+    filtered = filtered.filter((d) => d.EmpName === selectedEmp);
+  }
 
-  useEffect(() => {
-    filterDeliveries();
-  }, [fromDate, toDate, selectedEmp]);
+  setFilteredDeliveries(filtered);
+  setCurrentPage(1);
+};
+
+
+  const handleLocationFilterChange = (event, newValue) => {
+  setSelectedLocation(newValue ? Number(newValue.id) : null);
+};
+
+
+ useEffect(() => {
+  filterDeliveries();
+}, [fromDate, toDate, selectedEmp, selectedLocation]); // Add `selectedLocation`
+
 
   // Filter deliveries based on selected employee name
   const handleEmpFilterChange = (event, newValue) => {
@@ -157,6 +172,7 @@ const deliveryUrl = role
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredDeliveries.slice(indexOfFirstItem, indexOfLastItem);
    
+  
   if (loading) {
     return <Typography variant="h6" align="center">Loading...</Typography>;
   }
@@ -166,16 +182,15 @@ const deliveryUrl = role
        <Box display="flex" sx={{justifyContent:"space-between"}} mb={3}>
       <Typography variant="h4" gutterBottom align="center">Delivery List</Typography>
       {error && <Typography color="error" align="center">{error}</Typography>}
-       <Autocomplete
-          value={selectedEmp}
-          onChange={handleEmpFilterChange}
-          options={empNames}
-          renderInput={(params) => <TextField {...params} label="Search" fullWidth />}
-          getOptionLabel={(option) => option}
-          freeSolo
-          disableClearable
-          sx={{width:"200px"}}
-        />
+      <Autocomplete
+  value={selectedLocation ? { id: selectedLocation, name: locations[selectedLocation] } : null}
+  onChange={handleLocationFilterChange}
+  options={Object.keys(locations).map((id) => ({ id, name: locations[id] }))}
+  getOptionLabel={(option) => option.name || ''}
+  renderInput={(params) => <TextField {...params} label="Search by Location" fullWidth />}
+  sx={{ width: "200px" }}
+/>
+
         
        <TextField type="date" label="From Date" InputLabelProps={{ shrink: true }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         <TextField type="date" label="To Date" InputLabelProps={{ shrink: true }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
