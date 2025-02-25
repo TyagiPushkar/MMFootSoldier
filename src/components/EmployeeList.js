@@ -24,6 +24,7 @@ import {
   IconButton,
   Autocomplete,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 const EmployeeList = () => {
   const [employees, setEmployees] = useState([]);
@@ -32,8 +33,11 @@ const EmployeeList = () => {
   const [error, setError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [newEmployee, setNewEmployee] = useState({
-    full_name: "",
+    EmpId:"",
+    Full_Name: "",
     email: "",
     phone_number: "",
     password: "",
@@ -91,13 +95,41 @@ const EmployeeList = () => {
   }, []);
 
   const handleAddEmployeeClick = () => {
+    setIsEditing(false);
     setOpenDialog(true);
+    setNewEmployee({
+      Employee_Id: "",
+      EmpId: "",
+      full_name: "",
+      email: "",
+      phone_number: "",
+      password: "",
+      role: "",
+      login_id: "",
+      location_id: [],
+    });
   };
 
+  const handleEditClick = (employee) => {
+    setIsEditing(true);
+    setOpenDialog(true);
+    setSelectedEmployee(employee);
+    setNewEmployee({
+      EmpId: employee.EmpId,
+      full_name: employee.Full_Name,
+      email: employee.Email,
+      phone_number: employee.Phone_Number,
+      password: "",
+      role: employee.Role,
+      login_id: employee.Login_Id,
+      location_id: employee.LocationId ? employee.LocationId.split(",") : [],
+    });
+  };
   const handleCloseDialog = () => {
   setOpenDialog(false);
   setError(""); // Clear error when dialog is closed
-  setNewEmployee({ // Reset form fields
+    setNewEmployee({ // Reset form fields
+    EmpId:"",
     full_name: "",
     email: "",
     phone_number: "",
@@ -117,41 +149,44 @@ const EmployeeList = () => {
   };
 
   const handleSubmit = async () => {
-    const { full_name, email, phone_number, password, role, login_id, location_id } = newEmployee;
+    const { Employee_Id, EmpId, full_name, email, phone_number, password, role, login_id, location_id } =
+      newEmployee;
 
-    if (!full_name || !email || !password || !role || location_id.length === 0) {
+    if (!EmpId || !full_name || !email || !role || location_id.length === 0) {
       setError("Please fill in all required fields.");
       return;
     }
 
     try {
-      const response = await fetch(
-        "https://namami-infotech.com/M&M/src/employee/add_employee.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...newEmployee,
-            location_id: location_id.join(",") // Pass locations as comma-separated IDs
-          }),
-        }
-      );
+      const apiUrl = isEditing
+        ? "https://namami-infotech.com/M&M/src/employee/edit_employee.php"
+        : "https://namami-infotech.com/M&M/src/employee/add_employee.php";
+
+      const method = isEditing ? "PUT" : "POST";
+
+      const response = await fetch(apiUrl, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...newEmployee,
+          location_id: location_id.join(","), 
+        }),
+      });
 
       const data = await response.json();
 
       if (data.success) {
         handleCloseDialog();
-        fetchEmployees(); // Refresh the employee list
+        fetchEmployees(); 
       } else {
-        setError(data.message || "Failed to add employee.");
+        setError(data.message || "Failed to save employee.");
       }
     } catch (err) {
-      setError("Error adding employee.");
+      setError("Error saving employee.");
     }
   };
-
   const handleRemoveMobileID = async (employeeId) => {
     try {
       const response = await fetch(
@@ -216,6 +251,7 @@ const EmployeeList = () => {
         <Table>
           <TableHead sx={{ backgroundColor: "teal" }}>
             <TableRow>
+               <TableCell sx={{ color: "white", fontWeight: "bold" }}>EMP ID</TableCell>
               <TableCell sx={{ color: "white", fontWeight: "bold" }}>LogIn ID</TableCell>
               <TableCell sx={{ color: "white", fontWeight: "bold" }}>Name</TableCell>
               <TableCell sx={{ color: "white", fontWeight: "bold" }}>Email</TableCell>
@@ -228,12 +264,14 @@ const EmployeeList = () => {
           <TableBody>
   {filteredEmployees.map((employee) => (
     <TableRow key={employee.Employee_Id}>
+      <TableCell>{employee.EmpId}</TableCell>
       <TableCell>{employee.Login_Id}</TableCell>
       <TableCell>{employee.Full_Name}</TableCell>
       <TableCell>{employee.Email}</TableCell>
       <TableCell>{employee.Phone_Number}</TableCell>
       <TableCell>{employee.Role}</TableCell>
       <TableCell>
+         
         {employee.LocationId && employee.LocationId.split(",").length > 0
           ? locations
               .filter((loc) =>
@@ -247,6 +285,9 @@ const EmployeeList = () => {
       </TableCell>
       
       <TableCell>
+        <IconButton color="primary" onClick={() => handleEditClick(employee)}>
+                    <EditIcon />
+                  </IconButton>
                   <IconButton
                     variant="contained"
                     sx={{backgroundColor:"red", color:"white", ":hover": {backgroundColor:"red"}}}
@@ -263,7 +304,7 @@ const EmployeeList = () => {
       </TableContainer>
 
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-        <DialogTitle>Add New Employee</DialogTitle>
+         <DialogTitle>{isEditing ? "Edit Employee" : "Add New Employee"}</DialogTitle>
         {error && (
         <Typography variant="body1" color="error" sx={{ml: 1}} gutterBottom>
           {error}
@@ -280,6 +321,19 @@ const EmployeeList = () => {
                 name="full_name"
                 value={newEmployee.full_name}
                 onChange={handleChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="Employee Id"
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                name="EmpId"
+                value={newEmployee.EmpId}
+                onChange={handleChange}
+                disabled={isEditing}
                 required
               />
             </Grid>
@@ -322,7 +376,7 @@ const EmployeeList = () => {
   </Select>
 </FormControl>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={6}>
               <Autocomplete
             multiple
             options={locations}
@@ -365,9 +419,7 @@ const EmployeeList = () => {
           <Button onClick={handleCloseDialog} color="secondary">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} color="primary">
-            Add Employee
-          </Button>
+           <Button onClick={handleSubmit} color="primary">{isEditing ? "Update" : "Add"}</Button>
         </DialogActions>
       </Dialog>
     </Box>
