@@ -144,7 +144,7 @@ const DeliveryList = () => {
 
   const exportToCSV = () => {
     let csvContent =
-      "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Vehicle Numbers,Location,Datetime\n";
+      "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Vehicle Numbers, Packets, Location,Datetime\n";
 
     filteredDeliveries.forEach((d) => {
       let vehicleNumbers = [
@@ -157,6 +157,15 @@ const DeliveryList = () => {
         .filter(Boolean)
         .join(","); // Ensure vehicle numbers are separated correctly
 
+      let packets = [
+        d.Packet1,
+        d.Packet2,
+        d.Packet3,
+        d.Packet4,
+        d.Packet5,
+      ]
+        .filter(Boolean)
+        .join(",");
       // Wrap fields containing commas in double quotes
       let row = [
         d.EmpId,
@@ -164,6 +173,7 @@ const DeliveryList = () => {
         `"${d.TypeOfDelivery}"`,
         d.NumberOfVehicle,
         `"${vehicleNumbers}"`,
+        `"${packets}"`,
         `"${locations[d.LocationId] || "Unknown"}"`,
         `"${d.Datetime}"`,
       ].join(",");
