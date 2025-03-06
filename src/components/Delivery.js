@@ -144,7 +144,7 @@ const DeliveryList = () => {
 
   const exportToCSV = () => {
     let csvContent =
-      "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Vehicle Numbers, Packets, Location,Datetime\n";
+      "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Type Of Vehicle, Vehicle Numbers, Packets, Location,Datetime\n";
 
     filteredDeliveries.forEach((d) => {
       let vehicleNumbers = [
@@ -172,6 +172,7 @@ const DeliveryList = () => {
         `"${d.EmpName}"`,
         `"${d.TypeOfDelivery}"`,
         d.NumberOfVehicle,
+         `"${d.TypeOfVehicle}"`,
         `"${vehicleNumbers}"`,
         `"${packets}"`,
         `"${locations[d.LocationId] || "Unknown"}"`,
