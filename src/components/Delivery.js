@@ -144,7 +144,7 @@ const DeliveryList = () => {
 
   const exportToCSV = () => {
     let csvContent =
-      "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Type Of Vehicle, Vehicle Numbers, Packets, Location,Datetime\n";
+      "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Type Of Vehicle, Vehicle Numbers, Manual Numbers, Packets, Location,Datetime\n";
 
     filteredDeliveries.forEach((d) => {
       let vehicleNumbers = [
@@ -153,6 +153,16 @@ const DeliveryList = () => {
         d.VehicleNo3,
         d.VehicleNo4,
         d.VehicleNo5,
+      ]
+        .filter(Boolean)
+        .join(","); // Ensure vehicle numbers are separated correctly
+
+        let manualNumbers = [
+        d.ManualNumber1,
+        d.ManualNumber2,
+        d.ManualNumber3,
+        d.ManualNumber4,
+        d.ManualNumber5,
       ]
         .filter(Boolean)
         .join(","); // Ensure vehicle numbers are separated correctly
@@ -174,6 +184,7 @@ const DeliveryList = () => {
         d.NumberOfVehicle,
          `"${d.TypeOfVehicle}"`,
         `"${vehicleNumbers}"`,
+        `"${manualNumbers}"`,
         `"${packets}"`,
         `"${locations[d.LocationId] || "Unknown"}"`,
         `"${d.Datetime}"`,
@@ -309,13 +320,15 @@ const DeliveryList = () => {
       <TableContainer component={Paper}>
       <Table>
         <TableHead>
-          <TableRow>
+            <TableRow>
+              <TableCell sx={{backgroundColor:"teal",color:"white"}}>Sr No.</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Employee</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Emp ID</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Delivery Type</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Vehicle Type</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Vehicle with Employee</TableCell>
-            <TableCell sx={{backgroundColor:"teal",color:"white"}}>Vehicle Numbers</TableCell>
+              <TableCell sx={{ backgroundColor: "teal", color: "white" }}>Vehicle Numbers</TableCell>
+              <TableCell sx={{backgroundColor:"teal",color:"white"}}>Manual Numbers</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Packets</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Vehicle Images</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Location</TableCell>
@@ -324,101 +337,114 @@ const DeliveryList = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {currentItems.map((delivery) => (
-            <TableRow key={delivery.ID}>
-              <TableCell> <Avatar
-                  src={delivery.EmpPic}
-                  alt="Employee"
-                  sx={{ cursor: "pointer" ,boxShadow:
-                  delivery.Status === "Complete"
-                    ? "5px 5px 5px rgb(76, 181, 76)"
-                    : "5px 5px 5px rgb(255, 13, 0)" }}
-                  onClick={() => handleImageClick(delivery.EmpPic)}
-                /> {delivery.EmpName}</TableCell>
-              <TableCell>{delivery.EmpId}</TableCell>
-             
-              <TableCell>{delivery.TypeOfDelivery}</TableCell>
-             
-              <TableCell>{delivery.TypeOfVehicle}</TableCell>
-              <TableCell>
-                <Avatar src={delivery.CombinedVehiclePic} sx={{cursor:"pointer"}} onClick={() => handleImageClick(delivery.CombinedVehiclePic)}/> 
-              </TableCell>
-              <TableCell>
-                {[
-                  delivery.VehicleNo1,
-                  delivery.VehicleNo2,
-                  delivery.VehicleNo3,
-                  delivery.VehicleNo4,
-                  delivery.VehicleNo5,
-                ]
-                  .filter(Boolean)
-                  .map((vehicle, index) => (
-                    <Typography key={index} variant="body2">
-                      {vehicle}
-                    </Typography>
-                  ))}
-              </TableCell>
-               <TableCell>
-                {[
-                  delivery.Packet1,
-                  delivery.Packet2,
-                  delivery.Packet3,
-                  delivery.Packet4,
-                  delivery.Packet5,
-                ]
-                  .filter(Boolean)
-                  .join(", ")}
-              </TableCell>
-              <TableCell>
-                {[
-                  delivery.VehiclePic1,
-                  delivery.VehiclePic2,
-                  delivery.VehiclePic3,
-                  delivery.VehiclePic4,
-                  delivery.VehiclePic5,
-                ]
-                  .filter(Boolean)
-                  .map((pic, index) => (
-                    <IconButton key={index} onClick={() => handleImageClick(pic)}>
-                      <ImageIcon />
-                    </IconButton>
-                  ))}
-              </TableCell>
-              <TableCell>
-                
-                <a
-                  href={`https://www.google.com/maps?q=${delivery.LatLong}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "none", color: "blue" }}
-                >
-                  {locations[Number(delivery.LocationId)] || `Unknown (ID: ${delivery.LocationId})`}
-                </a>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" style={{ fontWeight: "800" }}>
-                  {delivery.Datetime}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <IconButton
-                  color="success"
-                  disabled={isCompleteButtonDisabled(delivery)}
-                  onClick={() => handleComplete(delivery.ID)}
-                >
-                  <CheckCircleIcon />
-                </IconButton>
-                <IconButton
-                  color="error"
-                  disabled={delivery.Status === "Complete"}
-                  onClick={() => handleDelete(delivery.ID)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </TableCell>
-            </TableRow>
+  {currentItems.map((delivery, index) => (
+    <TableRow key={delivery.ID}>
+      <TableCell>
+        {filteredDeliveries.length - (indexOfFirstItem + index)}
+      </TableCell>
+      <TableCell>
+        <Avatar
+          src={delivery.EmpPic}
+          alt="Employee"
+          sx={{
+            cursor: "pointer",
+            boxShadow:
+              delivery.Status === "Complete"
+                ? "5px 5px 5px rgb(76, 181, 76)"
+                : "5px 5px 5px rgb(255, 13, 0)",
+          }}
+          onClick={() => handleImageClick(delivery.EmpPic)}
+        />{" "}
+        {delivery.EmpName}
+      </TableCell>
+      <TableCell>{delivery.EmpId}</TableCell>
+      <TableCell>{delivery.TypeOfDelivery}</TableCell>
+      <TableCell>{delivery.TypeOfVehicle}</TableCell>
+      <TableCell>
+        <Avatar
+          src={delivery.CombinedVehiclePic}
+          sx={{ cursor: "pointer" }}
+          onClick={() => handleImageClick(delivery.CombinedVehiclePic)}
+        />
+      </TableCell>
+      <TableCell>
+        {[delivery.VehicleNo1, delivery.VehicleNo2, delivery.VehicleNo3, delivery.VehicleNo4, delivery.VehicleNo5]
+          .filter(Boolean)
+          .map((vehicle, idx) => (
+            <Typography key={idx} variant="body2">
+              {vehicle}
+            </Typography>
           ))}
-        </TableBody>
+      </TableCell>
+      <TableCell>
+  {[1, 2, 3, 4, 5].map((num, idx) => {
+    const vehicleNo = delivery[`VehicleNo${num}`];
+    const manualNo = delivery[`ManualNumber${num}`];
+
+    return (
+      <Typography
+        key={idx}
+        variant="body2"
+        sx={{
+          color: vehicleNo && manualNo && vehicleNo === manualNo ? "green" : "red",
+          fontWeight: "bold",
+        }}
+      >
+        {manualNo}
+      </Typography>
+    );
+  })}
+</TableCell>
+
+      <TableCell>
+        {[delivery.Packet1, delivery.Packet2, delivery.Packet3, delivery.Packet4, delivery.Packet5]
+          .filter(Boolean)
+          .join(", ")}
+      </TableCell>
+      <TableCell>
+        {[delivery.VehiclePic1, delivery.VehiclePic2, delivery.VehiclePic3, delivery.VehiclePic4, delivery.VehiclePic5]
+          .filter(Boolean)
+          .map((pic, idx) => (
+            <IconButton key={idx} onClick={() => handleImageClick(pic)}>
+              <ImageIcon />
+            </IconButton>
+          ))}
+      </TableCell>
+      <TableCell>
+        <a
+          href={`https://www.google.com/maps?q=${delivery.LatLong}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ textDecoration: "none", color: "blue" }}
+        >
+          {locations[Number(delivery.LocationId)] || `Unknown (ID: ${delivery.LocationId})`}
+        </a>
+      </TableCell>
+      <TableCell>
+        <Typography variant="body2" style={{ fontWeight: "800" }}>
+          {delivery.Datetime}
+        </Typography>
+      </TableCell>
+      <TableCell>
+        <IconButton
+          color="success"
+          disabled={isCompleteButtonDisabled(delivery)}
+          onClick={() => handleComplete(delivery.ID)}
+        >
+          <CheckCircleIcon />
+        </IconButton>
+        <IconButton
+          color="error"
+          disabled={delivery.Status === "Complete"}
+          onClick={() => handleDelete(delivery.ID)}
+        >
+          <DeleteIcon />
+        </IconButton>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
       </Table>
     </TableContainer>
 

@@ -269,7 +269,8 @@ const EmployeeList = () => {
       <TableCell>{employee.Full_Name}</TableCell>
       <TableCell>{employee.Email}</TableCell>
       <TableCell>{employee.Phone_Number}</TableCell>
-      <TableCell>{employee.Role}</TableCell>
+      <TableCell>{employee.Role === 'Manager' ? 'Area Manager' : employee.Role}</TableCell>
+
       <TableCell>
          
         {employee.LocationId && employee.LocationId.split(",").length > 0
@@ -371,7 +372,7 @@ const EmployeeList = () => {
     value={newEmployee.role}
     onChange={handleChange}
   >
-    <MenuItem value="Manager">Manager</MenuItem>
+    <MenuItem value="Manager">Area Manager</MenuItem>
     <MenuItem value="Supervisor">Supervisor</MenuItem>
   </Select>
 </FormControl>

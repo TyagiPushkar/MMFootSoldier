@@ -1,46 +1,51 @@
 // src/App.js
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/Login";
 import NotFound from "./components/NotFound";
-import Dashboard from "./components/Dashboard"; // Import the Dashboard component
 import LocationList from "./components/LocationList";
-import EmployeeList from "./components/EmployeeList"
+import EmployeeList from "./components/EmployeeList";
 import DeliveryList from "./components/Delivery";
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     !!localStorage.getItem("user") // Check if user data exists in localStorage
   );
 
-  // Private Route Component
-  const PrivateRoute = ({ children }) => {
-    return isAuthenticated ? children : <Navigate to="/login" />;
-  };
+  // Auto Logout After 10 Seconds
+  useEffect(() => {
+    const logoutTimer = setTimeout(() => {
+  localStorage.removeItem("user");
+  setIsAuthenticated(false);
+  window.location.href = "/login";
+}, 5 * 60 * 1000); 
+
+    return () => clearTimeout(logoutTimer);
+  }, []);
 
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route
-          path="/login"
-          element={<LoginPage setIsAuthenticated={setIsAuthenticated} />}
-        />
+        <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
 
         {/* Private Routes with Layout */}
         <Route
-          path="/*" // Use "/*" to allow nested routing inside the layout
+          path="/*"
           element={
-            <PrivateRoute>
+            isAuthenticated ? (
               <Layout>
                 <Routes>
                   <Route path="/office-locations" element={<LocationList />} />
                   <Route path="/employee-list" element={<EmployeeList />} />
-                  <Route path="/out-delivery" element={<DeliveryList/>} />
+                  <Route path="/out-delivery" element={<DeliveryList />} />
                 </Routes>
               </Layout>
-            </PrivateRoute>
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         />
 
