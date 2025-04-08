@@ -20,7 +20,7 @@ function App() {
   localStorage.removeItem("user");
   setIsAuthenticated(false);
   window.location.href = "/login";
-}, 5 * 60 * 1000); 
+}, 30 * 60 * 1000); 
 
     return () => clearTimeout(logoutTimer);
   }, []);

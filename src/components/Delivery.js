@@ -321,14 +321,14 @@ const DeliveryList = () => {
       <Table>
         <TableHead>
             <TableRow>
-              <TableCell sx={{backgroundColor:"teal",color:"white"}}>Sr No.</TableCell>
+            <TableCell sx={{backgroundColor:"teal",color:"white"}}>Sr No.</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Employee</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Emp ID</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Delivery Type</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Vehicle Type</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Vehicle with Employee</TableCell>
-              <TableCell sx={{ backgroundColor: "teal", color: "white" }}>Vehicle Numbers</TableCell>
-              <TableCell sx={{backgroundColor:"teal",color:"white"}}>Manually Numbers</TableCell>
+            <TableCell sx={{ backgroundColor: "teal", color: "white" }}>Vehicle Numbers</TableCell>
+            <TableCell sx={{backgroundColor:"teal",color:"white"}}>Manually Numbers</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Packets</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Vehicle Images</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Location</TableCell>
