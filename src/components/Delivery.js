@@ -45,6 +45,29 @@ const DeliveryList = () => {
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+const [matchStatusFilter, setMatchStatusFilter] = useState("All");
+const getMatchStatus = (delivery) => {
+  const vehicleNumbers = [
+    delivery.VehicleNo1,
+    delivery.VehicleNo2,
+    delivery.VehicleNo3,
+    delivery.VehicleNo4,
+    delivery.VehicleNo5,
+  ].filter(Boolean);
+
+  const manualNumbers = [
+    delivery.ManualNumber1,
+    delivery.ManualNumber2,
+    delivery.ManualNumber3,
+    delivery.ManualNumber4,
+    delivery.ManualNumber5,
+  ].filter(Boolean);
+
+  return vehicleNumbers.length === manualNumbers.length &&
+    vehicleNumbers.every((v, i) => v === manualNumbers[i])
+    ? "OK"
+    : "Not OK";
+};
 
   const itemsPerPage = 15;
 
@@ -97,31 +120,36 @@ const DeliveryList = () => {
   };
 
   const filterDeliveries = () => {
-    let filtered = [...deliveries];
+  let filtered = [...deliveries];
 
-    if (fromDate && toDate) {
-      filtered = filtered.filter((d) => {
-        const deliveryDate = dayjs(d.Datetime.split(" ")[0]);
-        return (
-          deliveryDate.isAfter(dayjs(fromDate).subtract(1, "day")) &&
-          deliveryDate.isBefore(dayjs(toDate).add(1, "day"))
-        );
-      });
-    }
-
-    if (selectedLocation) {
-      filtered = filtered.filter(
-        (d) => Number(d.LocationId) === selectedLocation,
+  if (fromDate && toDate) {
+    filtered = filtered.filter((d) => {
+      const deliveryDate = dayjs(d.Datetime.split(" ")[0]);
+      return (
+        deliveryDate.isAfter(dayjs(fromDate).subtract(1, "day")) &&
+        deliveryDate.isBefore(dayjs(toDate).add(1, "day"))
       );
-    }
+    });
+  }
 
-    if (selectedEmp) {
-      filtered = filtered.filter((d) => d.EmpName === selectedEmp);
-    }
+  if (selectedLocation) {
+    filtered = filtered.filter(
+      (d) => Number(d.LocationId) === selectedLocation,
+    );
+  }
 
-    setFilteredDeliveries(filtered);
-    setCurrentPage(1);
-  };
+  if (selectedEmp) {
+    filtered = filtered.filter((d) => d.EmpName === selectedEmp);
+  }
+
+  if (matchStatusFilter !== "All") {
+    filtered = filtered.filter((d) => getMatchStatus(d) === matchStatusFilter);
+  }
+
+  setFilteredDeliveries(filtered);
+  setCurrentPage(1);
+};
+
 
   const handleLocationFilterChange = (event, newValue) => {
     setSelectedLocation(newValue ? Number(newValue.id) : null);
@@ -129,7 +157,7 @@ const DeliveryList = () => {
 
   useEffect(() => {
     filterDeliveries();
-  }, [fromDate, toDate, selectedEmp, selectedLocation]); // Add `selectedLocation`
+  }, [fromDate, toDate, selectedEmp, selectedLocation,matchStatusFilter]); // Add `selectedLocation`
 
   // Filter deliveries based on selected employee name
   const handleEmpFilterChange = (event, newValue) => {
@@ -143,59 +171,61 @@ const DeliveryList = () => {
   };
 
   const exportToCSV = () => {
-    let csvContent =
-      "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Type Of Vehicle, Vehicle Numbers, Manual Numbers, Packets, Location,Datetime\n";
+  let csvContent =
+    "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Type Of Vehicle,Vehicle Numbers,Manual Numbers,Packets,Location,Datetime,Status\n";
 
-    filteredDeliveries.forEach((d) => {
-      let vehicleNumbers = [
-        d.VehicleNo1,
-        d.VehicleNo2,
-        d.VehicleNo3,
-        d.VehicleNo4,
-        d.VehicleNo5,
-      ]
-        .filter(Boolean)
-        .join(","); // Ensure vehicle numbers are separated correctly
+  filteredDeliveries.forEach((d) => {
+    const vehicleNumbers = [
+      d.VehicleNo1,
+      d.VehicleNo2,
+      d.VehicleNo3,
+      d.VehicleNo4,
+      d.VehicleNo5,
+    ].filter(Boolean);
 
-        let manualNumbers = [
-        d.ManualNumber1,
-        d.ManualNumber2,
-        d.ManualNumber3,
-        d.ManualNumber4,
-        d.ManualNumber5,
-      ]
-        .filter(Boolean)
-        .join(","); // Ensure vehicle numbers are separated correctly
+    const manualNumbers = [
+      d.ManualNumber1,
+      d.ManualNumber2,
+      d.ManualNumber3,
+      d.ManualNumber4,
+      d.ManualNumber5,
+    ].filter(Boolean);
 
-      let packets = [
-        d.Packet1,
-        d.Packet2,
-        d.Packet3,
-        d.Packet4,
-        d.Packet5,
-      ]
-        .filter(Boolean)
-        .join(",");
-      // Wrap fields containing commas in double quotes
-      let row = [
-        d.EmpId,
-        `"${d.EmpName}"`,
-        `"${d.TypeOfDelivery}"`,
-        d.NumberOfVehicle,
-         `"${d.TypeOfVehicle}"`,
-        `"${vehicleNumbers}"`,
-        `"${manualNumbers}"`,
-        `"${packets}"`,
-        `"${locations[d.LocationId] || "Unknown"}"`,
-        `"${d.Datetime}"`,
-      ].join(",");
+    const packets = [
+      d.Packet1,
+      d.Packet2,
+      d.Packet3,
+      d.Packet4,
+      d.Packet5,
+    ].filter(Boolean);
 
-      csvContent += row + "\n";
-    });
+    const numbersMatch =
+      vehicleNumbers.length === manualNumbers.length &&
+      vehicleNumbers.every((v, i) => v === manualNumbers[i])
+        ? "OK"
+        : "Not OK";
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, "deliveries.csv");
-  };
+    const row = [
+      d.EmpId,
+      `"${d.EmpName}"`,
+      `"${d.TypeOfDelivery}"`,
+      d.NumberOfVehicle,
+      `"${d.TypeOfVehicle}"`,
+      `"${vehicleNumbers.join(",")}"`,
+      `"${manualNumbers.join(",")}"`,
+      `"${packets.join(",")}"`,
+      `"${locations[d.LocationId] || "Unknown"}"`,
+      `"${d.Datetime}"`,
+      numbersMatch,
+    ].join(",");
+
+    csvContent += row + "\n";
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  saveAs(blob, "deliveries.csv");
+};
+
 
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -293,6 +323,16 @@ const DeliveryList = () => {
           )}
           sx={{ width: "200px" }}
         />
+        <Autocomplete
+  options={["All", "OK", "Not OK"]}
+  value={matchStatusFilter}
+  onChange={(event, newValue) => setMatchStatusFilter(newValue || "All")}
+  renderInput={(params) => (
+    <TextField {...params} label="Match Status" fullWidth />
+  )}
+  sx={{ width: "180px" }}
+/>
+
 
         <TextField
           type="date"
@@ -361,7 +401,8 @@ const DeliveryList = () => {
       <TableCell>{delivery.TypeOfDelivery}</TableCell>
       <TableCell>{delivery.TypeOfVehicle}</TableCell>
       <TableCell>
-        <Avatar
+        <img
+          style={{width:"70px", height: "70px", borderRadius: "5px", cursor: "pointer"}}
           src={delivery.CombinedVehiclePic}
           sx={{ cursor: "pointer" }}
           onClick={() => handleImageClick(delivery.CombinedVehiclePic)}
