@@ -1,84 +1,116 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, IconButton } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material'; // Importing eye icons
+import {
+  Box, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, CircularProgress, Button, Dialog,
+  DialogActions, DialogContent, DialogTitle, TextField, Autocomplete, IconButton
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+
+const roleOptions = ['DA (Packet)', 'DA (Salary)', 'SSA', 'TL', 'Supervisor', 'Manager'];
 
 const LocationList = () => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [openDialog, setOpenDialog] = useState(false); // State to control dialog visibility
-  const [newLocation, setNewLocation] = useState({ abbrevation: '',address:'', latlong: '' });
-  const [visiblePasswords, setVisiblePasswords] = useState({}); // State to track visible passwords for each row
-const fetchLocations = async () => {
-      try {
-        const response = await fetch('https://namami-infotech.com/M&M/src/location/get_location.php');
-        const data = await response.json();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [newLocation, setNewLocation] = useState({
+    abbrevation: '',
+    address: '',
+    latlong: '',
+    roles: []
+  });
 
-        if (data.success) {
-          setLocations(data.data);
-        } else {
-          setError(data.message || 'Failed to fetch locations');
-        }
-      } catch (err) {
-        setError('Error fetching locations');
-      } finally {
-        setLoading(false);
+  const fetchLocations = async () => {
+    try {
+      const response = await fetch('https://namami-infotech.com/M&M/src/location/get_location.php');
+      const data = await response.json();
+      if (data.success) {
+        setLocations(data.data);
+      } else {
+        setError(data.message || 'Failed to fetch locations');
       }
-    };
-  useEffect(() => {
-    
+    } catch (err) {
+      setError('Error fetching locations');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchLocations();
   }, []);
 
   const handleAddLocationClick = () => {
-    setOpenDialog(true); // Open the dialog
+    setIsEditing(false);
+    setNewLocation({ abbrevation: '', address: '', latlong: '', roles: [] });
+    setOpenDialog(true);
+  };
+
+  const handleEditClick = (location) => {
+    setIsEditing(true);
+    setSelectedLocation(location);
+    setNewLocation({
+      abbrevation: location.abbrevation,
+      address: location.address,
+      latlong: location.latlong,
+      roles: location.roles ? location.roles.split(',') : []
+    });
+    setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
-    setOpenDialog(false); // Close the dialog
+    setOpenDialog(false);
+    setError('');
+    setSelectedLocation(null);
+    setNewLocation({ abbrevation: '', address: '', latlong: '', roles: [] });
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewLocation((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setNewLocation((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async () => {
-    const { abbrevation,address, latlong } = newLocation;
-    if (!abbrevation || !address || !latlong ) {
+    const { abbrevation, address, latlong, roles } = newLocation;
+    if (!abbrevation || !address || !latlong || roles.length === 0) {
       setError('Please fill all fields');
       return;
     }
 
-    // Send the POST request to add the location
+    const payload = {
+      ...newLocation,
+      roles: roles.join(','),
+    };
+
+    const url = isEditing
+      ? 'https://namami-infotech.com/M&M/src/location/edit_location.php'
+      : 'https://namami-infotech.com/M&M/src/location/add_location.php';
+
+    if (isEditing && selectedLocation) {
+      payload.id = selectedLocation.id;
+    }
+
     try {
-      const response = await fetch('https://namami-infotech.com/M&M/src/location/add_location.php', {
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newLocation),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
+
       const data = await response.json();
 
       if (data.success) {
-        setLocations((prev) => [...prev, newLocation]); // Add the new location to the list
-
-        handleCloseDialog(); // Close the dialog
         fetchLocations();
+        handleCloseDialog();
       } else {
-        setError(data.message || 'Failed to add location');
+        setError(data.message || 'Failed to submit location');
       }
     } catch (err) {
-      setError('Error adding location');
+      setError('Error submitting location');
     }
   };
-
-  
 
   if (loading) {
     return (
@@ -113,6 +145,8 @@ const fetchLocations = async () => {
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Abbrevation</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Address</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Latitude/Longitude</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Roles</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -122,15 +156,21 @@ const fetchLocations = async () => {
                 <TableCell>{location.abbrevation}</TableCell>
                 <TableCell>{location.address}</TableCell>
                 <TableCell>{location.latlong}</TableCell>
+                <TableCell>{location.roles}</TableCell>
+                <TableCell>
+                  <IconButton color="primary" onClick={() => handleEditClick(location)}>
+                    <EditIcon />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Add Location Dialog */}
+      {/* Dialog for Add/Edit */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Add New Location</DialogTitle>
+        <DialogTitle>{isEditing ? 'Edit Location' : 'Add New Location'}</DialogTitle>
         <DialogContent>
           <TextField
             label="Abbrevation"
@@ -159,15 +199,31 @@ const fetchLocations = async () => {
             value={newLocation.latlong}
             onChange={handleChange}
           />
-          
-          
+
+          <Autocomplete
+            multiple
+            options={roleOptions}
+            value={newLocation.roles}
+            onChange={(event, newValue) =>
+              setNewLocation((prev) => ({ ...prev, roles: newValue }))
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Select Roles"
+                variant="outlined"
+                margin="normal"
+                fullWidth
+              />
+            )}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="secondary">
             Cancel
           </Button>
           <Button onClick={handleSubmit} color="primary">
-            Add Location
+            {isEditing ? 'Update Location' : 'Add Location'}
           </Button>
         </DialogActions>
       </Dialog>

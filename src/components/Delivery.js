@@ -172,7 +172,7 @@ const getMatchStatus = (delivery) => {
 
   const exportToCSV = () => {
   let csvContent =
-    "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Type Of Vehicle,Vehicle Numbers,Manual Numbers,Packets,Location,Datetime,Status\n";
+    "EmpId,Emp Name,Type of Delivery,Number of Vehicles,Type Of Vehicle,Vehicle Numbers,Manual Numbers,Packets,Location,Datetime, Status\n";
 
   filteredDeliveries.forEach((d) => {
     const vehicleNumbers = [
