@@ -20,6 +20,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import { NavLink, useNavigate } from "react-router-dom";
 import PeopleIcon from '@mui/icons-material/People';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 const drawerWidth = 200;
 
 const Layout = ({ children }) => {
@@ -46,7 +47,8 @@ const Layout = ({ children }) => {
       [
         { to: "/employee-list", icon: <PeopleIcon />, text: "Employees" },
         { to: "/office-locations", icon: <BusinessIcon />, text: "Offices Location" },
-        { to: "/out-delivery", icon: <LocalShippingIcon />, text: "Out For Delivery" },
+         { to: "/out-delivery", icon: <LocalShippingIcon />, text: "Out For Delivery" },
+        { to: "/amazonId", icon: <FilterDramaIcon />, text: "Amazon Id's" },
       ].map(({ to, icon, text }) => (
         <NavLink
           key={to}

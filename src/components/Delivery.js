@@ -213,7 +213,7 @@ const getMatchStatus = (delivery) => {
       `"${d.TypeOfVehicle}"`,
       `"${vehicleNumbers.join(",")}"`,
       `"${manualNumbers.join(",")}"`,
-      `"${packets.join(",")}"`,
+      `"${d.CompName}"`,
       `"${locations[d.LocationId] || "Unknown"}"`,
       `"${d.Datetime}"`,
       numbersMatch,
@@ -369,7 +369,7 @@ const getMatchStatus = (delivery) => {
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Vehicle with Employee</TableCell>
             <TableCell sx={{ backgroundColor: "teal", color: "white" }}>Vehicle Numbers</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Manually Numbers</TableCell>
-            <TableCell sx={{backgroundColor:"teal",color:"white"}}>Packets</TableCell>
+            <TableCell sx={{backgroundColor:"teal",color:"white"}}>Comp Id</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Vehicle Images</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Location</TableCell>
             <TableCell sx={{backgroundColor:"teal",color:"white"}}>Date & Time</TableCell>
@@ -436,12 +436,13 @@ const getMatchStatus = (delivery) => {
     );
   })}
 </TableCell>
+      <TableCell>{delivery.CompName}</TableCell>
 
-      <TableCell>
+      {/* <TableCell>
         {[delivery.Packet1, delivery.Packet2, delivery.Packet3, delivery.Packet4, delivery.Packet5]
           .filter(Boolean)
           .join(", ")}
-      </TableCell>
+      </TableCell> */}
       <TableCell>
         {[delivery.VehiclePic1, delivery.VehiclePic2, delivery.VehiclePic3, delivery.VehiclePic4, delivery.VehiclePic5]
           .filter(Boolean)

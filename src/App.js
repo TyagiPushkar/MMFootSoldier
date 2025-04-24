@@ -8,6 +8,7 @@ import NotFound from "./components/NotFound";
 import LocationList from "./components/LocationList";
 import EmployeeList from "./components/EmployeeList";
 import DeliveryList from "./components/Delivery";
+import AmazonIdList from "./components/AmazonIdList";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -41,6 +42,7 @@ function App() {
                   <Route path="/office-locations" element={<LocationList />} />
                   <Route path="/employee-list" element={<EmployeeList />} />
                   <Route path="/out-delivery" element={<DeliveryList />} />
+                  <Route path="/amazonId" element={<AmazonIdList/> } />
                 </Routes>
               </Layout>
             ) : (

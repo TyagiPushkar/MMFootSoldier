@@ -1,0 +1,243 @@
+import React, { useEffect, useState } from 'react';
+import {
+  Box, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, CircularProgress, Button, Dialog,
+  DialogTitle, DialogContent, DialogActions, TextField, IconButton, Autocomplete
+} from '@mui/material';
+import { Add, Remove } from '@mui/icons-material';
+import { CheckCircle, Cancel } from '@mui/icons-material';
+
+const AmazonIdList = () => {
+  const [amazonIds, setAmazonIds] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [entries, setEntries] = useState([
+    { Office: '', daAmazonId: '', CompId: '', CompName: '' }
+  ]);
+  const [selectedOffice, setSelectedOffice] = useState(null); // For filter
+
+  const fetchAmazonIds = async () => {
+    try {
+      const res = await fetch('https://namami-infotech.com/M&M/src/location/amazon_id_list.php');
+      const data = await res.json();
+      if (data.success) {
+        setAmazonIds(data.data);
+        setLoading(false);
+      } else {
+        setError(data.message || 'Failed to fetch Amazon IDs');
+      }
+    } catch {
+      setError('Error fetching Amazon IDs');
+    }
+  };
+
+  const fetchLocations = async () => {
+    try {
+      const res = await fetch('https://namami-infotech.com/M&M/src/location/get_location.php');
+      const data = await res.json();
+      if (data.success) {
+        setLocations(data.data);
+      } else {
+        setError(data.message || 'Failed to fetch locations');
+      }
+    } catch {
+      setError('Error fetching locations');
+    }
+  };
+
+  useEffect(() => {
+    fetchAmazonIds();
+    fetchLocations();
+  }, []);
+
+  const handleEntryChange = (index, e) => {
+    const { name, value } = e.target;
+    const updated = [...entries];
+    updated[index][name] = value;
+    setEntries(updated);
+  };
+
+  const handleAddEntry = () => {
+    setEntries([...entries, { Office: '', daAmazonId: '', CompId: '', CompName: '' }]);
+  };
+
+  const handleRemoveEntry = (index) => {
+    const updated = entries.filter((_, i) => i !== index);
+    setEntries(updated);
+  };
+
+  const handleSubmit = async () => {
+    if (entries.some(entry => !entry.Office || !entry.daAmazonId || !entry.CompId || !entry.CompName)) {
+      setError('Please fill all fields in each entry');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://namami-infotech.com/M&M/src/location/add_amazon_id.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entries }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        fetchAmazonIds();
+        setOpenDialog(false);
+        setEntries([{ Office: '', daAmazonId: '', CompId: '', CompName: '' }]);
+        setError('');
+      } else {
+        setError(data.message || 'Failed to insert entries');
+      }
+    } catch {
+      setError('Submission failed');
+    }
+  };
+
+  const filteredAmazonIds = selectedOffice
+    ? amazonIds.filter((item) => item.Office === selectedOffice.abbrevation)
+    : amazonIds;
+const toggleStatus = async (id) => {
+  try {
+    const res = await fetch('https://namami-infotech.com/M&M/src/location/update_comp_status.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchAmazonIds(); // Refresh the list
+    } else {
+      setError(data.message || 'Failed to update status');
+    }
+  } catch {
+    setError('Error updating status');
+  }
+};
+
+  return (
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4">Amazon ID List</Typography>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Autocomplete
+            value={selectedOffice}
+            onChange={(e, newValue) => setSelectedOffice(newValue)}
+            options={locations}
+            getOptionLabel={(option) => option.abbrevation}
+            sx={{ width: 200 }}
+            renderInput={(params) => <TextField {...params} label="Filter by Office" />}
+          />
+          <Button variant="contained" onClick={() => setOpenDialog(true)} sx={{ backgroundColor: 'teal' }}>
+            Add Amazon IDs
+          </Button>
+        </Box>
+      </Box>
+
+      {error && (
+        <Typography color="error" sx={{ mt: 1 }}>{error}</Typography>
+      )}
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer component={Paper} sx={{ mt: 2 }}>
+          <Table>
+            <TableHead sx={{ backgroundColor: 'teal' }}>
+              <TableRow>
+                <TableCell sx={{ color: 'white' }}>ID</TableCell>
+                <TableCell sx={{ color: 'white' }}>Office</TableCell>
+                <TableCell sx={{ color: 'white' }}>Amazon ID</TableCell>
+                <TableCell sx={{ color: 'white' }}>Comp ID</TableCell>
+                <TableCell sx={{ color: 'white' }}>Comp Name</TableCell>
+                <TableCell sx={{ color: 'white' }}>Update Date</TableCell>
+                <TableCell sx={{ color: 'white' }}>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredAmazonIds.map((item) => (
+                <TableRow key={item.ID}>
+                  <TableCell>{item.ID}</TableCell>
+                  <TableCell>{item.Office}</TableCell>
+                  <TableCell>{item.daAmazonId}</TableCell>
+                  <TableCell>{item.CompId}</TableCell>
+                  <TableCell>{item.CompName}</TableCell>
+                  <TableCell>{item.UpdateDateTime}</TableCell>
+                  <TableCell>
+  <IconButton onClick={() => toggleStatus(item.ID)}>
+    {parseInt(item.Status) === 1 ? (
+      <CheckCircle color="success" />
+    ) : (
+      <Cancel color="error" />
+    )}
+  </IconButton>
+</TableCell>
+
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Add Amazon ID Entries</DialogTitle>
+        <DialogContent>
+          {entries.map((entry, index) => (
+            <Box key={index} sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2 }}>
+              <Autocomplete
+                value={
+                  locations.find((loc) => loc.abbrevation === entry.Office) || null
+                }
+                onChange={(e, newValue) => {
+                  const updated = [...entries];
+                  updated[index].Office = newValue ? newValue.abbrevation : '';
+                  setEntries(updated);
+                }}
+                options={locations}
+                getOptionLabel={(option) => option.abbrevation}
+                renderInput={(params) => <TextField {...params} label="Office" />}
+              />
+
+              <TextField
+                label="Amazon ID"
+                name="daAmazonId"
+                value={entry.daAmazonId}
+                onChange={(e) => handleEntryChange(index, e)}
+              />
+              <TextField
+                label="Comp ID"
+                name="CompId"
+                value={entry.CompId}
+                onChange={(e) => handleEntryChange(index, e)}
+              />
+              <TextField
+                label="Comp Name"
+                name="CompName"
+                value={entry.CompName}
+                onChange={(e) => handleEntryChange(index, e)}
+              />
+              <IconButton onClick={() => handleRemoveEntry(index)} disabled={entries.length === 1}>
+                <Remove />
+              </IconButton>
+              {index === entries.length - 1 && (
+                <IconButton onClick={handleAddEntry}>
+                  <Add />
+                </IconButton>
+              )}
+            </Box>
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">Submit All</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
+export default AmazonIdList;
