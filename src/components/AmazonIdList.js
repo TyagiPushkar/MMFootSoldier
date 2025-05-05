@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, CircularProgress, Button, Dialog,
-  DialogTitle, DialogContent, DialogActions, TextField, IconButton, Autocomplete
+  DialogTitle, DialogContent, DialogActions, TextField, IconButton, Autocomplete,
+  TablePagination
 } from '@mui/material';
 import { Add, Remove } from '@mui/icons-material';
 import { CheckCircle, Cancel } from '@mui/icons-material';
@@ -17,6 +18,8 @@ const AmazonIdList = () => {
     { Office: '', daAmazonId: '', CompId: '', CompName: '' }
   ]);
   const [selectedOffice, setSelectedOffice] = useState(null); // For filter
+const [page, setPage] = useState(0);
+const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const fetchAmazonIds = async () => {
     try {
@@ -95,9 +98,12 @@ const AmazonIdList = () => {
     }
   };
 
-  const filteredAmazonIds = selectedOffice
-    ? amazonIds.filter((item) => item.Office === selectedOffice.abbrevation)
-    : amazonIds;
+  const filteredData = selectedOffice
+  ? amazonIds.filter((item) => item.Office === selectedOffice.abbrevation)
+  : amazonIds;
+
+const paginatedAmazonIds = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
 const toggleStatus = async (id) => {
   try {
     const res = await fetch('https://namami-infotech.com/M&M/src/location/update_comp_status.php', {
@@ -148,23 +154,21 @@ const toggleStatus = async (id) => {
           <Table>
             <TableHead sx={{ backgroundColor: 'teal' }}>
               <TableRow>
-                <TableCell sx={{ color: 'white' }}>ID</TableCell>
+                <TableCell sx={{ color: 'white' }}>Comp Name</TableCell>
                 <TableCell sx={{ color: 'white' }}>Office</TableCell>
                 <TableCell sx={{ color: 'white' }}>Amazon ID</TableCell>
                 <TableCell sx={{ color: 'white' }}>Comp ID</TableCell>
-                <TableCell sx={{ color: 'white' }}>Comp Name</TableCell>
                 <TableCell sx={{ color: 'white' }}>Update Date</TableCell>
                 <TableCell sx={{ color: 'white' }}>Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredAmazonIds.map((item) => (
+              {paginatedAmazonIds.map((item) => (
                 <TableRow key={item.ID}>
-                  <TableCell>{item.ID}</TableCell>
+                  <TableCell>{item.CompName}</TableCell>
                   <TableCell>{item.Office}</TableCell>
                   <TableCell>{item.daAmazonId}</TableCell>
                   <TableCell>{item.CompId}</TableCell>
-                  <TableCell>{item.CompName}</TableCell>
                   <TableCell>{item.UpdateDateTime}</TableCell>
                   <TableCell>
   <IconButton onClick={() => toggleStatus(item.ID)}>
@@ -178,8 +182,22 @@ const toggleStatus = async (id) => {
 
                 </TableRow>
               ))}
-            </TableBody>
-          </Table>
+              </TableBody>
+              <TablePagination
+  component="div"
+  count={filteredData.length}
+  page={page}
+  onPageChange={(event, newPage) => setPage(newPage)}
+  rowsPerPage={rowsPerPage}
+  onRowsPerPageChange={(event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  }}
+  rowsPerPageOptions={[5, 10, 25, 50]}
+/>
+
+            </Table>
+            
         </TableContainer>
       )}
 
