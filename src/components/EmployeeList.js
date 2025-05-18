@@ -251,7 +251,7 @@ const EmployeeList = () => {
         <Table>
           <TableHead sx={{ backgroundColor: "teal" }}>
             <TableRow>
-               <TableCell sx={{ color: "white", fontWeight: "bold" }}>EMP ID</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>EMP ID</TableCell>
               <TableCell sx={{ color: "white", fontWeight: "bold" }}>LogIn ID</TableCell>
               <TableCell sx={{ color: "white", fontWeight: "bold" }}>Name</TableCell>
               <TableCell sx={{ color: "white", fontWeight: "bold" }}>Email</TableCell>

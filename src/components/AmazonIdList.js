@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { Add, Remove } from '@mui/icons-material';
 import { CheckCircle, Cancel } from '@mui/icons-material';
+import Swal from 'sweetalert2';
 
 const AmazonIdList = () => {
   const [amazonIds, setAmazonIds] = useState([]);
@@ -20,6 +21,7 @@ const AmazonIdList = () => {
   const [selectedOffice, setSelectedOffice] = useState(null); // For filter
 const [page, setPage] = useState(0);
 const [rowsPerPage, setRowsPerPage] = useState(10);
+const [bulkFile, setBulkFile] = useState(null);
 
   const fetchAmazonIds = async () => {
     try {
@@ -121,6 +123,90 @@ const toggleStatus = async (id) => {
     setError('Error updating status');
   }
 };
+const exportToCSV = () => {
+  const headers = ['Comp Name', 'Office', 'Amazon ID', 'Comp ID', 'Update Date', 'Status'];
+  const rows = filteredData.map(item => [
+    item.CompName,
+    item.Office,
+    item.daAmazonId,
+    item.CompId,
+    item.UpdateDateTime,
+    parseInt(item.Status) === 1 ? 'Active' : 'Inactive'
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(field => `"${field}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'amazon_id_list.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+const handleDownloadSample = () => {
+  const headers = ['Office', 'Amazon ID', 'Comp ID', 'Comp Name'];
+  const sampleData = [
+    ['NY', 'A12345', 'C789', 'AmazonComp1'],
+    ['CA', 'B54321', 'C321', 'AmazonComp2']
+  ];
+
+  const csvContent = [headers, ...sampleData]
+    .map(row => row.map(field => `"${field}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'sample_bulk_amazon_id.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const handleBulkUpload = async () => {
+  if (!bulkFile) {
+    setError('No file selected');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', bulkFile);
+
+  try {
+    const res = await fetch('https://namami-infotech.com/M&M/src/location/bulk_amazon_id.php', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      fetchAmazonIds();
+      setBulkFile(null);
+      setError('');
+      Swal.fire({
+        icon: 'success',
+        title: 'Upload Successful',
+        text: 'Bulk Amazon IDs uploaded successfully!',
+        confirmButtonColor: 'teal'
+      });
+    } else {
+      setError(data.message || 'Bulk upload failed');
+    }
+  } catch (err) {
+    setError('Error uploading file');
+    console.error(err);
+  }
+};
+
+
+
 
   return (
     <Box sx={{ p: 2 }}>
@@ -135,9 +221,39 @@ const toggleStatus = async (id) => {
             sx={{ width: 200 }}
             renderInput={(params) => <TextField {...params} label="Filter by Office" />}
           />
+          <Button variant="outlined" onClick={exportToCSV}>
+  Export CSV
+</Button>
+
           <Button variant="contained" onClick={() => setOpenDialog(true)} sx={{ backgroundColor: 'teal' }}>
             Add Amazon IDs
           </Button>
+          <Button variant="outlined" onClick={handleDownloadSample}>
+  Download Sample Bulk
+</Button>
+
+<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+  <Button variant="outlined" component="label">
+    Select File
+    <input
+      type="file"
+      hidden
+      accept=".xls,.xlsx"
+      onChange={(e) => setBulkFile(e.target.files[0])}
+    />
+  </Button>
+  {bulkFile && <Typography variant="body2">{bulkFile.name}</Typography>}
+  <Button
+    variant="contained"
+    color="secondary"
+    onClick={handleBulkUpload}
+    disabled={!bulkFile}
+  >
+    Submit Bulk
+  </Button>
+</Box>
+
+
         </Box>
       </Box>
 
