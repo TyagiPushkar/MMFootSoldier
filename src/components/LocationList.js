@@ -5,11 +5,13 @@ import {
   DialogActions, DialogContent, DialogTitle, TextField, Autocomplete, IconButton
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const roleOptions = ['DA (Packet)', 'DA (Salary)', 'SSA', 'TL', 'Supervisor', 'Manager'];
 
 const LocationList = () => {
-  const [locations, setLocations] = useState([]);
+  const [locations, setLocations] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
@@ -112,6 +114,29 @@ const LocationList = () => {
     }
   };
 
+  const handleToggleReturn = async (id) => {
+  try {
+    const response = await fetch(
+      'https://namami-infotech.com/M&M/src/location/update_return.php',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      }
+    );
+
+    const data = await response.json();
+    if (data.success) {
+      // Refresh locations after update
+      fetchLocations();
+    } else {
+      alert(data.message || 'Failed to update return status');
+    }
+  } catch (err) {
+    alert('Error updating return status');
+  }
+};
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -146,6 +171,7 @@ const LocationList = () => {
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Address</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Latitude/Longitude</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Roles</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Return</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -157,6 +183,16 @@ const LocationList = () => {
                 <TableCell>{location.address}</TableCell>
                 <TableCell>{location.latlong}</TableCell>
                 <TableCell>{location.roles}</TableCell>
+                <TableCell>
+  <IconButton onClick={() => handleToggleReturn(location.id)}>
+    {location.menu_return === 1 ? (
+      <CheckCircleIcon color="success" />
+    ) : (
+      <CancelIcon color="error" />
+    )}
+  </IconButton>
+</TableCell>
+
                 <TableCell>
                   <IconButton color="primary" onClick={() => handleEditClick(location)}>
                     <EditIcon />

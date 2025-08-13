@@ -9,6 +9,7 @@ import LocationList from "./components/LocationList";
 import EmployeeList from "./components/EmployeeList";
 import DeliveryList from "./components/Delivery";
 import AmazonIdList from "./components/AmazonIdList";
+import Return from "./components/Return";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -42,7 +43,8 @@ function App() {
                   <Route path="/office-locations" element={<LocationList />} />
                   <Route path="/employee-list" element={<EmployeeList />} />
                   <Route path="/out-delivery" element={<DeliveryList />} />
-                  <Route path="/amazonId" element={<AmazonIdList/> } />
+                  <Route path="/amazonId" element={<AmazonIdList />} />
+                  <Route path="/return" element={<Return />} />
                 </Routes>
               </Layout>
             ) : (

@@ -15,12 +15,13 @@ import {
   MenuItem,
   IconButton,
 } from "@mui/material";
-import { Home, Menu as MenuIcon } from "@mui/icons-material";
+import {  Menu as MenuIcon } from "@mui/icons-material";
 import BusinessIcon from '@mui/icons-material/Business';
 import { NavLink, useNavigate } from "react-router-dom";
 import PeopleIcon from '@mui/icons-material/People';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
+import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
 const drawerWidth = 200;
 
 const Layout = ({ children }) => {
@@ -48,7 +49,8 @@ const Layout = ({ children }) => {
         { to: "/employee-list", icon: <PeopleIcon />, text: "Employees" },
         { to: "/office-locations", icon: <BusinessIcon />, text: "Offices Location" },
          { to: "/out-delivery", icon: <LocalShippingIcon />, text: "Out For Delivery" },
-        { to: "/amazonId", icon: <FilterDramaIcon />, text: "Amazon Id's" },
+         { to: "/amazonId", icon: <FilterDramaIcon />, text: "Amazon Id's" },
+        { to: "/return", icon: <KeyboardReturnIcon />, text: "Return" },
       ].map(({ to, icon, text }) => (
         <NavLink
           key={to}
@@ -68,23 +70,29 @@ const Layout = ({ children }) => {
         </NavLink>
       ))
     ) : (
-      <NavLink
-        to="/out-delivery"
-        style={({ isActive }) => ({
-          textDecoration: "none",
-          color: isActive ? "teal" : "inherit",
-          backgroundColor: isActive ? "white" : "transparent",
-          borderRadius: "5px",
-          display: "block",
-        })}
-      >
-        <ListItem button sx={{ borderRadius: "5px", padding: "10px 16px" }}>
-          <ListItemIcon sx={{ color: "inherit" }}>
-            <LocalShippingIcon />
-          </ListItemIcon>
-          <ListItemText primary="Out For Delivery" />
-        </ListItem>
-      </NavLink>
+       [
+       
+         { to: "/out-delivery", icon: <LocalShippingIcon />, text: "Out For Delivery" },
+        { to: "/return", icon: <KeyboardReturnIcon />, text: "Return" },
+      ].map(({ to, icon, text }) => (
+        <NavLink
+          key={to}
+          to={to}
+          style={({ isActive }) => ({
+            textDecoration: "none",
+            color: isActive ? "teal" : "inherit",
+            backgroundColor: isActive ? "white" : "transparent",
+            borderRadius: "5px",
+            display: "block",
+          })}
+        >
+          <ListItem button sx={{ borderRadius: "5px", padding: "10px 16px" }}>
+            <ListItemIcon sx={{ color: "inherit" }}>{icon}</ListItemIcon>
+            <ListItemText primary={text} />
+          </ListItem>
+        </NavLink>
+      ))
+         
     )}
   </List>
 );

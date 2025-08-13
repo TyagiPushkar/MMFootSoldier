@@ -2,14 +2,9 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
-  CardMedia,
-  Grid,
   IconButton,
   Dialog,
   DialogContent,
-  Chip,
   TextField,
   Button,
   Pagination,
@@ -24,8 +19,6 @@ import {
 } from "@mui/material";
 import ImageIcon from "@mui/icons-material/Image";
 import Autocomplete from "@mui/material/Autocomplete";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { saveAs } from "file-saver";
 import dayjs from "dayjs";
 import GetAppIcon from "@mui/icons-material/GetApp";
@@ -41,8 +34,6 @@ const DeliveryList = () => {
   const [selectedImage, setSelectedImage] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [empNames, setEmpNames] = useState([]);
-  const [selectedEmp, setSelectedEmp] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 const [matchStatusFilter, setMatchStatusFilter] = useState("All");
@@ -102,7 +93,6 @@ const getMatchStatus = (delivery) => {
       if (deliveryData.status === "success") {
         setDeliveries(deliveryData.data);
         setFilteredDeliveries(deliveryData.data);
-        extractDistinctEmpNames(deliveryData.data);
       } else {
         setError(deliveryData.message || "Failed to fetch deliveries");
       }
@@ -114,12 +104,15 @@ const getMatchStatus = (delivery) => {
   };
 
   // Extract distinct employee names from deliveries
-  const extractDistinctEmpNames = (data) => {
-    const uniqueNames = [...new Set(data.map((d) => d.EmpName))];
-    setEmpNames(uniqueNames);
+ 
+  
+
+  const handleLocationFilterChange = (event, newValue) => {
+    setSelectedLocation(newValue ? Number(newValue.id) : null);
   };
 
-  const filterDeliveries = () => {
+  useEffect(() => {
+    const filterDeliveries = () => {
   let filtered = [...deliveries];
 
   if (fromDate && toDate) {
@@ -138,10 +131,7 @@ const getMatchStatus = (delivery) => {
     );
   }
 
-  if (selectedEmp) {
-    filtered = filtered.filter((d) => d.EmpName === selectedEmp);
-  }
-
+  
   if (matchStatusFilter !== "All") {
     filtered = filtered.filter((d) => getMatchStatus(d) === matchStatusFilter);
   }
@@ -150,25 +140,8 @@ const getMatchStatus = (delivery) => {
   setCurrentPage(1);
 };
 
-
-  const handleLocationFilterChange = (event, newValue) => {
-    setSelectedLocation(newValue ? Number(newValue.id) : null);
-  };
-
-  useEffect(() => {
     filterDeliveries();
-  }, [fromDate, toDate, selectedEmp, selectedLocation,matchStatusFilter]); // Add `selectedLocation`
-
-  // Filter deliveries based on selected employee name
-  const handleEmpFilterChange = (event, newValue) => {
-    setSelectedEmp(newValue);
-
-    if (newValue) {
-      setFilteredDeliveries(deliveries.filter((d) => d.EmpName === newValue));
-    } else {
-      setFilteredDeliveries(deliveries);
-    }
-  };
+  }, [fromDate, toDate, selectedLocation, matchStatusFilter]);
 
   const exportToCSV = () => {
   let csvContent =
@@ -191,13 +164,7 @@ const getMatchStatus = (delivery) => {
       d.ManualNumber5,
     ].filter(Boolean);
 
-    const packets = [
-      d.Packet1,
-      d.Packet2,
-      d.Packet3,
-      d.Packet4,
-      d.Packet5,
-    ].filter(Boolean);
+    
 
     const numbersMatch =
       vehicleNumbers.length === manualNumbers.length &&
@@ -406,6 +373,7 @@ const getMatchStatus = (delivery) => {
           src={delivery.CombinedVehiclePic}
           sx={{ cursor: "pointer" }}
           onClick={() => handleImageClick(delivery.CombinedVehiclePic)}
+          alt="Combined Vehicle"
         />
       </TableCell>
       <TableCell>

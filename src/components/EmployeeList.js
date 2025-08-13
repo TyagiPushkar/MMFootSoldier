@@ -149,7 +149,7 @@ const EmployeeList = () => {
   };
 
   const handleSubmit = async () => {
-    const { Employee_Id, EmpId, full_name, email, phone_number, password, role, login_id, location_id } =
+    const {  EmpId, full_name, email, role, location_id } =
       newEmployee;
 
     if (!EmpId || !full_name || !email || !role || location_id.length === 0) {
