@@ -35,8 +35,10 @@ const DeliveryList = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [matchStatusFilter, setMatchStatusFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-const [matchStatusFilter, setMatchStatusFilter] = useState("All");
+  const [itemsPerPage] = useState(5);   // API limit
+  const [totalRecords, setTotalRecords] = useState(0);
 const getMatchStatus = (delivery) => {
   const vehicleNumbers = [
     delivery.VehicleNo1,
@@ -60,15 +62,14 @@ const getMatchStatus = (delivery) => {
     : "Not OK";
 };
 
-  const itemsPerPage = 15;
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage, selectedLocation, fromDate, toDate, matchStatusFilter]);
   const fetchData = async () => {
     try {
       const locationRes = await fetch(
-        "https://namami-infotech.com/M&M/src/location/get_location.php",
+        "https://namami-infotech.com/M&M/src/location/get_location.php"
       );
       const locationData = await locationRes.json();
       if (locationData.success) {
@@ -79,13 +80,19 @@ const getMatchStatus = (delivery) => {
         setLocations(locationMap);
       }
 
-      // Get user role and location ID
       const user = JSON.parse(localStorage.getItem("user"));
-      const role = user?.role?.trim() === "admin" ? "admin" : "";
+      const role = user?.role?.trim() === "admin" ? "admin" : "user";
       const locationId = user?.location_id || "";
-      const deliveryUrl = role
-        ? "https://namami-infotech.com/M&M/src/delivery/delivery_get.php?role=admin"
-        : `https://namami-infotech.com/M&M/src/delivery/delivery_get.php?LocationId=${locationId}`;
+
+      // Build API URL with pagination
+      const params = new URLSearchParams({
+        role,
+        LocationId: locationId,
+        page: currentPage,
+        limit: itemsPerPage,
+      });
+
+      const deliveryUrl = `https://namami-infotech.com/M&M/src/delivery/delivery_get.php?${params}`;
 
       const deliveryRes = await fetch(deliveryUrl);
       const deliveryData = await deliveryRes.json();
@@ -93,6 +100,7 @@ const getMatchStatus = (delivery) => {
       if (deliveryData.status === "success") {
         setDeliveries(deliveryData.data);
         setFilteredDeliveries(deliveryData.data);
+        setTotalRecords(deliveryData.total || 0); // assuming API sends total count
       } else {
         setError(deliveryData.message || "Failed to fetch deliveries");
       }
@@ -199,7 +207,7 @@ const getMatchStatus = (delivery) => {
     setOpenDialog(true);
   };
 
-  const handlePageChange = (event, value) => {
+ const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
@@ -459,12 +467,13 @@ const getMatchStatus = (delivery) => {
     </TableContainer>
 
       <Box display="flex" justifyContent="center" mt={3}>
-        <Pagination
-          count={Math.ceil(filteredDeliveries.length / itemsPerPage)}
-          page={currentPage}
-          onChange={handlePageChange}
-          color="primary"
-        />
+  <Pagination
+    count={Math.ceil(totalRecords / itemsPerPage)}  // Based on API total
+    page={currentPage}
+    onChange={handlePageChange}
+    color="primary"
+  />
+
       </Box>
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogContent>
