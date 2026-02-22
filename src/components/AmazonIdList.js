@@ -10,6 +10,7 @@ import { CheckCircle, Cancel } from '@mui/icons-material';
 import Swal from 'sweetalert2';
 
 const AmazonIdList = () => {
+  const [searchTerm, setSearchTerm] = useState("");
   const [amazonIds, setAmazonIds] = useState([]);
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,10 +101,26 @@ const [bulkFile, setBulkFile] = useState(null);
     }
   };
 
-  const filteredData = selectedOffice
-  ? amazonIds.filter((item) => item.Office === selectedOffice.abbrevation)
-  : amazonIds;
+ const filteredData = amazonIds.filter((item) => {
+  const matchesOffice = selectedOffice
+    ? item.Office === selectedOffice.abbrevation
+    : true;
 
+  const search = searchTerm.toLowerCase();
+
+  const matchesSearch =
+    item.CompName?.toLowerCase().includes(search) ||
+    item.Office?.toLowerCase().includes(search) ||
+    item.daAmazonId?.toLowerCase().includes(search) ||
+    item.CompId?.toLowerCase().includes(search) ||
+    item.UpdateDateTime?.toLowerCase().includes(search) ||
+    (parseInt(item.Status) === 1 ? 'active' : 'inactive').includes(search);
+
+  return matchesOffice && matchesSearch;
+ });
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm, selectedOffice]);
 const paginatedAmazonIds = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 const toggleStatus = async (id) => {
@@ -210,72 +227,95 @@ const handleBulkUpload = async () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
         <Typography variant="h4">Amazon ID List</Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           <Autocomplete
             value={selectedOffice}
             onChange={(e, newValue) => setSelectedOffice(newValue)}
             options={locations}
             getOptionLabel={(option) => option.abbrevation}
             sx={{ width: 200 }}
-            renderInput={(params) => <TextField {...params} label="Filter by Office" />}
+            renderInput={(params) => (
+              <TextField {...params} label="Filter by Office" />
+            )}
           />
           <Button variant="outlined" onClick={exportToCSV}>
-  Export CSV
-</Button>
+            Export CSV
+          </Button>
+          <TextField
+            label="Search..."
+            variant="outlined"
+            size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ width: 250 }}
+          />
 
-          <Button variant="contained" onClick={() => setOpenDialog(true)} sx={{ backgroundColor: 'teal' }}>
+          <Button
+            variant="contained"
+            onClick={() => setOpenDialog(true)}
+            sx={{ backgroundColor: "teal" }}
+          >
             Add Amazon IDs
           </Button>
           <Button variant="outlined" onClick={handleDownloadSample}>
-  Download Sample Bulk
-</Button>
+            Download Sample Bulk
+          </Button>
 
-<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-  <Button variant="outlined" component="label">
-    Select File
-    <input
-      type="file"
-      hidden
-      accept=".xls,.xlsx"
-      onChange={(e) => setBulkFile(e.target.files[0])}
-    />
-  </Button>
-  {bulkFile && <Typography variant="body2">{bulkFile.name}</Typography>}
-  <Button
-    variant="contained"
-    color="secondary"
-    onClick={handleBulkUpload}
-    disabled={!bulkFile}
-  >
-    Submit Bulk
-  </Button>
-</Box>
-
-
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Button variant="outlined" component="label">
+              Select File
+              <input
+                type="file"
+                hidden
+                accept=".xls,.xlsx"
+                onChange={(e) => setBulkFile(e.target.files[0])}
+              />
+            </Button>
+            {bulkFile && (
+              <Typography variant="body2">{bulkFile.name}</Typography>
+            )}
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleBulkUpload}
+              disabled={!bulkFile}
+            >
+              Submit Bulk
+            </Button>
+          </Box>
         </Box>
       </Box>
 
       {error && (
-        <Typography color="error" sx={{ mt: 1 }}>{error}</Typography>
+        <Typography color="error" sx={{ mt: 1 }}>
+          {error}
+        </Typography>
       )}
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <CircularProgress />
         </Box>
       ) : (
         <TableContainer component={Paper} sx={{ mt: 2 }}>
           <Table>
-            <TableHead sx={{ backgroundColor: 'teal' }}>
+            <TableHead sx={{ backgroundColor: "teal" }}>
               <TableRow>
-                <TableCell sx={{ color: 'white' }}>Comp Name</TableCell>
-                <TableCell sx={{ color: 'white' }}>Office</TableCell>
-                <TableCell sx={{ color: 'white' }}>Amazon ID</TableCell>
-                <TableCell sx={{ color: 'white' }}>Comp ID</TableCell>
-                <TableCell sx={{ color: 'white' }}>Update Date</TableCell>
-                <TableCell sx={{ color: 'white' }}>Status</TableCell>
+                <TableCell sx={{ color: "white" }}>Comp Name</TableCell>
+                <TableCell sx={{ color: "white" }}>Office</TableCell>
+                <TableCell sx={{ color: "white" }}>Amazon ID</TableCell>
+                <TableCell sx={{ color: "white" }}>Comp ID</TableCell>
+                <TableCell sx={{ color: "white" }}>Update Date</TableCell>
+                <TableCell sx={{ color: "white" }}>Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -287,53 +327,61 @@ const handleBulkUpload = async () => {
                   <TableCell>{item.CompId}</TableCell>
                   <TableCell>{item.UpdateDateTime}</TableCell>
                   <TableCell>
-  <IconButton onClick={() => toggleStatus(item.ID)}>
-    {parseInt(item.Status) === 1 ? (
-      <CheckCircle color="success" />
-    ) : (
-      <Cancel color="error" />
-    )}
-  </IconButton>
-</TableCell>
-
+                    <IconButton onClick={() => toggleStatus(item.ID)}>
+                      {parseInt(item.Status) === 1 ? (
+                        <CheckCircle color="success" />
+                      ) : (
+                        <Cancel color="error" />
+                      )}
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               ))}
-              </TableBody>
-              <TablePagination
-  component="div"
-  count={filteredData.length}
-  page={page}
-  onPageChange={(event, newPage) => setPage(newPage)}
-  rowsPerPage={rowsPerPage}
-  onRowsPerPageChange={(event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  }}
-  rowsPerPageOptions={[5, 10, 25, 50]}
-/>
-
-            </Table>
-            
+            </TableBody>
+            <TablePagination
+              component="div"
+              count={filteredData.length}
+              page={page}
+              onPageChange={(event, newPage) => setPage(newPage)}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(event) => {
+                setRowsPerPage(parseInt(event.target.value, 10));
+                setPage(0);
+              }}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </Table>
         </TableContainer>
       )}
 
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Add Amazon ID Entries</DialogTitle>
         <DialogContent>
           {entries.map((entry, index) => (
-            <Box key={index} sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2 }}>
+            <Box
+              key={index}
+              sx={{ display: "flex", gap: 2, alignItems: "center", mt: 2 }}
+            >
               <Autocomplete
                 value={
-                  locations.find((loc) => loc.abbrevation === entry.Office) || null
+                  locations.find((loc) => loc.abbrevation === entry.Office) ||
+                  null
                 }
                 onChange={(e, newValue) => {
                   const updated = [...entries];
-                  updated[index].Office = newValue ? newValue.abbrevation : '';
+                  updated[index].Office = newValue ? newValue.abbrevation : "";
                   setEntries(updated);
                 }}
                 options={locations}
                 getOptionLabel={(option) => option.abbrevation}
-                renderInput={(params) => <TextField {...params} label="Office" />}
+                renderInput={(params) => (
+                  <TextField {...params} label="Office" />
+                )}
               />
 
               <TextField
@@ -354,7 +402,10 @@ const handleBulkUpload = async () => {
                 value={entry.CompName}
                 onChange={(e) => handleEntryChange(index, e)}
               />
-              <IconButton onClick={() => handleRemoveEntry(index)} disabled={entries.length === 1}>
+              <IconButton
+                onClick={() => handleRemoveEntry(index)}
+                disabled={entries.length === 1}
+              >
                 <Remove />
               </IconButton>
               {index === entries.length - 1 && (
@@ -367,7 +418,9 @@ const handleBulkUpload = async () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">Submit All</Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            Submit All
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
