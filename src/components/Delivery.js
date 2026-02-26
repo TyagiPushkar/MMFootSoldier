@@ -16,6 +16,7 @@ import {
   Paper,
   TableBody,
   Avatar,
+  InputAdornment,
 } from "@mui/material";
 import ImageIcon from "@mui/icons-material/Image";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -24,6 +25,8 @@ import dayjs from "dayjs";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SearchIcon from "@mui/icons-material/Search";
+
 const DeliveryList = () => {
   const [deliveries, setDeliveries] = useState([]);
   const [filteredDeliveries, setFilteredDeliveries] = useState([]);
@@ -37,6 +40,8 @@ const DeliveryList = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [matchStatusFilter, setMatchStatusFilter] = useState("All");
+  const [globalSearch, setGlobalSearch] = useState(""); // New state for global search
+
   const getMatchStatus = (delivery) => {
     const vehicleNumbers = [
       delivery.VehicleNo1,
@@ -65,6 +70,7 @@ const DeliveryList = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
   const fetchData = async () => {
     try {
       const locationRes = await fetch(
@@ -103,16 +109,47 @@ const DeliveryList = () => {
     }
   };
 
-  // Extract distinct employee names from deliveries
-
   const handleLocationFilterChange = (event, newValue) => {
     setSelectedLocation(newValue ? Number(newValue.id) : null);
+  };
+
+  // Global search function
+  const globalSearchFilter = (delivery, searchTerm) => {
+    if (!searchTerm) return true;
+
+    const searchLower = searchTerm.toLowerCase();
+
+    // Search through various fields
+    const searchableFields = [
+      delivery.EmpName,
+      delivery.EmpId,
+      delivery.TypeOfDelivery,
+      delivery.TypeOfVehicle,
+      delivery.CompName,
+      delivery.VehicleNo1,
+      delivery.VehicleNo2,
+      delivery.VehicleNo3,
+      delivery.VehicleNo4,
+      delivery.VehicleNo5,
+      delivery.ManualNumber1,
+      delivery.ManualNumber2,
+      delivery.ManualNumber3,
+      delivery.ManualNumber4,
+      delivery.ManualNumber5,
+      locations[delivery.LocationId],
+      delivery.Datetime,
+    ];
+
+    return searchableFields.some(
+      (field) => field && field.toString().toLowerCase().includes(searchLower),
+    );
   };
 
   useEffect(() => {
     const filterDeliveries = () => {
       let filtered = [...deliveries];
 
+      // Apply date filters
       if (fromDate && toDate) {
         filtered = filtered.filter((d) => {
           const deliveryDate = dayjs(d.Datetime.split(" ")[0]);
@@ -123,16 +160,23 @@ const DeliveryList = () => {
         });
       }
 
+      // Apply location filter
       if (selectedLocation) {
         filtered = filtered.filter(
           (d) => Number(d.LocationId) === selectedLocation,
         );
       }
 
+      // Apply match status filter
       if (matchStatusFilter !== "All") {
         filtered = filtered.filter(
           (d) => getMatchStatus(d) === matchStatusFilter,
         );
+      }
+
+      // Apply global search
+      if (globalSearch) {
+        filtered = filtered.filter((d) => globalSearchFilter(d, globalSearch));
       }
 
       setFilteredDeliveries(filtered);
@@ -140,7 +184,15 @@ const DeliveryList = () => {
     };
 
     filterDeliveries();
-  }, [fromDate, toDate, selectedLocation, matchStatusFilter]);
+  }, [
+    fromDate,
+    toDate,
+    selectedLocation,
+    matchStatusFilter,
+    globalSearch,
+    deliveries,
+    locations,
+  ]);
 
   const exportToCSV = () => {
     let csvContent =
@@ -250,6 +302,7 @@ const DeliveryList = () => {
   const handleDelete = (id) => {
     updateStatus(id, "Delete");
   };
+
   if (loading) {
     return (
       <Typography variant="h6" align="center">
@@ -260,7 +313,11 @@ const DeliveryList = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box display="flex" sx={{ justifyContent: "space-between" }} mb={3}>
+      <Box
+        display="flex"
+        sx={{ justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}
+        mb={3}
+      >
         <Typography variant="h4" gutterBottom align="center">
           Delivery List
         </Typography>
@@ -269,6 +326,22 @@ const DeliveryList = () => {
             {error}
           </Typography>
         )}
+
+        {/* Global Search Field */}
+        <TextField
+          placeholder="Global Search..."
+          value={globalSearch}
+          onChange={(e) => setGlobalSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: "250px" }}
+        />
+
         <Autocomplete
           value={
             selectedLocation
@@ -320,6 +393,12 @@ const DeliveryList = () => {
           <GetAppIcon /> CSV
         </Button>
       </Box>
+
+      {/* Results count */}
+      <Typography variant="subtitle1" sx={{ mb: 2 }}>
+        Showing {filteredDeliveries.length} results
+        {globalSearch && ` for "${globalSearch}"`}
+      </Typography>
 
       <TableContainer component={Paper}>
         <Table>
